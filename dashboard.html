@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<p style="text-align:center; font-size:18px;">
+Welcome, Administrator
+</p>
+
+<body>
+
+    <h1>🌸 Auto Repair Shop Dashboard 🌸</h1>
+
+    <nav>
+    <a href="dashboard.html">Dashboard</a> |
+    <a href="customers.html">Customers</a> |
+    <a href="vehicles.html">Vehicles</a> |
+    <a href="mechanics.html">Mechanics</a> |
+    <a href="services.html">Services</a> |
+    <a href="inventory.html">Inventory</a> |
+    <a href="billing.html">Billing</a> |
+    <a href="reports.html">Reports</a> |
+    <a href="index.html">Logout</a>
+</nav>
+
+    <br>
+
+    <div class="hero">
+
+
+        <h2>Welcome to Auto Repair Shop Management System</h2>
+
+        <p>
+            Manage Customers, Vehicles, Repairs, Inventory,
+            Billing and Reports in one place.
+        </p>
+
+    </div>
+
+    <br>
+
+    <div class="dashboard-grid">
+
+        <div class="card">
+            <h2>Total Customers</h2>
+            <p id="customerCount">0</p>
+        </div>
+
+        <div class="card">
+            <h2>Total Vehicles</h2>
+            <p id="vehicleCount">0</p>
+        </div>
+
+        <div class="card">
+            <h2>Repair Orders</h2>
+            <p id="repairCount">0</p>
+        </div>
+
+        <div class="card">
+            <h2>Inventory Items</h2>
+            <p id="inventoryCount">0</p>
+        </div>
+
+        <div class="card">
+            <h2>Monthly Revenue</h2>
+            <p id="revenueCount">₱0</p>
+        </div>
+
+        <div class="card">
+            <h2>Active Mechanics</h2>
+            <p id="mechanicCount">0</p>
+        </div>
+
+        <div class="card">
+            <h2>Pending Repairs</h2>
+            <p id="pendingCount">0</p>
+        </div>
+
+        <div class="card">
+            <h2>Completed Repairs</h2>
+            <p id="completedCount">0</p>
+        </div>
+
+    </div>
+
+    <script>
+
+        let customers =
+            JSON.parse(localStorage.getItem("customers")) || [];
+
+        let vehicles =
+            JSON.parse(localStorage.getItem("vehicles")) || [];
+
+        let mechanics =
+            JSON.parse(localStorage.getItem("mechanics")) || [];
+
+        let parts =
+            JSON.parse(localStorage.getItem("parts")) || [];
+
+        let services =
+            JSON.parse(localStorage.getItem("services")) || [];
+
+        let invoices =
+            JSON.parse(localStorage.getItem("invoices")) || [];
+
+        document.getElementById("customerCount").innerText =
+            customers.length;
+
+        document.getElementById("vehicleCount").innerText =
+            vehicles.length;
+
+        document.getElementById("mechanicCount").innerText =
+            mechanics.length;
+
+        document.getElementById("inventoryCount").innerText =
+            parts.length;
+
+        document.getElementById("repairCount").innerText =
+            services.length;
+
+        let pendingCount =
+            services.filter(service =>
+                service.status === "Pending"
+            ).length;
+
+        document.getElementById("pendingCount").innerText =
+            pendingCount;
+
+        let completedCount =
+            services.filter(service =>
+                service.status === "Completed"
+            ).length;
+
+        document.getElementById("completedCount").innerText =
+            completedCount;
+
+        let totalRevenue = 0;
+
+        invoices.forEach(function(invoice){
+
+            totalRevenue +=
+                Number(invoice.grandTotal);
+
+        });
+
+        document.getElementById("revenueCount").innerText =
+            "₱" + totalRevenue.toLocaleString();
+
+    </script>
+
+</body>
+
+</html>

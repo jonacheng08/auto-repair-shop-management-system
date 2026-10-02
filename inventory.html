@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Inventory Management</h1>
+
+<hr>
+
+<h3>Add New Part</h3>
+
+<input type="text" id="partName" placeholder="Part Name">
+
+<br><br>
+
+<input type="number" id="quantity" placeholder="Quantity">
+
+<br><br>
+
+<input type="number" id="unitPrice" placeholder="Unit Price">
+
+<br><br>
+
+<input type="text" id="supplier" placeholder="Supplier">
+
+<br><br>
+
+<button onclick="addPart()">Add Part</button>
+
+<hr>
+
+<h3>Search Part</h3>
+
+<input
+    type="text"
+    id="searchInput"
+    placeholder="Search Part..."
+    onkeyup="searchPart()">
+
+<br><br>
+
+<h3>Inventory Records</h3>
+
+<table border="1" id="inventoryTable">
+
+    <tr>
+        <th>ID</th>
+        <th>Part Name</th>
+        <th>Quantity</th>
+        <th>Unit Price</th>
+        <th>Supplier</th>
+        <th>Actions</th>
+    </tr>
+
+</table>
+
+<script>
+
+let partId =
+    Number(localStorage.getItem("partId")) || 1;
+
+let editPartId = null;
+
+window.onload = function() {
+
+    loadParts();
+
+};
+
+function loadParts() {
+
+    let parts =
+        JSON.parse(
+            localStorage.getItem("parts")
+        ) || [];
+
+    let table =
+        document.getElementById("inventoryTable");
+
+    table.innerHTML = `
+        <tr>
+            <th>ID</th>
+            <th>Part Name</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Supplier</th>
+            <th>Actions</th>
+        </tr>
+    `;
+
+    parts.forEach(function(part){
+
+        let row = table.insertRow(-1);
+
+        row.innerHTML =
+            "<td>" + part.id + "</td>" +
+            "<td>" + part.partName + "</td>" +
+            "<td>" + part.quantity + "</td>" +
+            "<td>" + part.unitPrice + "</td>" +
+            "<td>" + part.supplier + "</td>" +
+            "<td>" +
+            "<button onclick='editPart(this)'>Edit</button> " +
+            "<button onclick='deletePart(this)'>Delete</button>" +
+            "</td>";
+
+    });
+
+}
+
+function addPart() {
+
+    let partName =
+        document.getElementById("partName").value;
+
+    let quantity =
+        document.getElementById("quantity").value;
+
+    let unitPrice =
+        document.getElementById("unitPrice").value;
+
+    let supplier =
+        document.getElementById("supplier").value;
+
+    if(
+        partName === "" ||
+        quantity === "" ||
+        unitPrice === "" ||
+        supplier === ""
+    ){
+        alert("Please complete all fields.");
+        return;
+    }
+
+    let parts =
+        JSON.parse(
+            localStorage.getItem("parts")
+        ) || [];
+
+    if(editPartId !== null){
+
+        parts = parts.filter(
+            part =>
+            part.id != editPartId
+        );
+
+        parts.push({
+            id: Number(editPartId),
+            partName: partName,
+            quantity: quantity,
+            unitPrice: unitPrice,
+            supplier: supplier
+        });
+
+        editPartId = null;
+
+    }
+    else{
+
+        parts.push({
+            id: partId,
+            partName: partName,
+            quantity: quantity,
+            unitPrice: unitPrice,
+            supplier: supplier
+        });
+
+        partId++;
+
+    }
+
+    localStorage.setItem(
+        "parts",
+        JSON.stringify(parts)
+    );
+
+    localStorage.setItem(
+        "partId",
+        partId
+    );
+
+    document.getElementById("partName").value = "";
+    document.getElementById("quantity").value = "";
+    document.getElementById("unitPrice").value = "";
+    document.getElementById("supplier").value = "";
+
+    loadParts();
+
+}
+
+function deletePart(button){
+
+    let row =
+        button.closest("tr");
+
+    let id =
+        row.cells[0].innerText;
+
+    let parts =
+        JSON.parse(
+            localStorage.getItem("parts")
+        ) || [];
+
+    parts = parts.filter(
+        part =>
+        part.id != id
+    );
+
+    localStorage.setItem(
+        "parts",
+        JSON.stringify(parts)
+    );
+
+    loadParts();
+
+}
+
+function editPart(button){
+
+    let row =
+        button.closest("tr");
+
+    editPartId =
+        row.cells[0].innerText;
+
+    document.getElementById("partName").value =
+        row.cells[1].innerText;
+
+    document.getElementById("quantity").value =
+        row.cells[2].innerText;
+
+    document.getElementById("unitPrice").value =
+        row.cells[3].innerText;
+
+    document.getElementById("supplier").value =
+        row.cells[4].innerText;
+
+}
+
+function searchPart(){
+
+    let input =
+        document.getElementById("searchInput")
+        .value
+        .toLowerCase();
+
+    let rows =
+        document.querySelectorAll("#inventoryTable tr");
+
+    rows.forEach(function(row,index){
+
+        if(index === 0) return;
+
+        let text =
+            row.textContent.toLowerCase();
+
+        if(text.includes(input)){
+            row.style.display = "";
+        }
+        else{
+            row.style.display = "none";
+        }
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>
+<hr>
+
+<center>
+    Auto Repair Shop Management System © 2026
+</center>

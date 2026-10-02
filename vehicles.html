@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vehicle Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>Vehicle Management</h1>
+
+    <hr>
+
+    <h3>Add New Vehicle</h3>
+
+    <input type="text" id="plateNumber" placeholder="Plate Number">
+
+    <br><br>
+
+    <input type="text" id="brand" placeholder="Brand">
+
+    <br><br>
+
+    <input type="text" id="model" placeholder="Model">
+
+    <br><br>
+
+    <input type="text" id="year" placeholder="Year">
+
+    <br><br>
+
+    <input type="text" id="color" placeholder="Color">
+
+    <br><br>
+
+    <input type="text" id="owner" placeholder="Owner">
+
+    <br><br>
+
+    <button onclick="addVehicle()">Add Vehicle</button>
+
+    <hr>
+
+    <h3>Vehicle Records</h3>
+
+    <table border="1" id="vehicleTable">
+
+        <tr>
+            <th>ID</th>
+            <th>Plate Number</th>
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Year</th>
+            <th>Color</th>
+            <th>Owner</th>
+            <th>Actions</th>
+        </tr>
+
+    </table>
+
+    <script>
+
+let vehicleId =
+    Number(localStorage.getItem("vehicleId")) || 1;
+
+let editVehicleId = null;
+
+window.onload = function() {
+
+    loadVehicles();
+
+};
+
+function loadVehicles() {
+
+    let vehicles =
+        JSON.parse(
+            localStorage.getItem("vehicles")
+        ) || [];
+
+    let table =
+        document.getElementById("vehicleTable");
+
+    table.innerHTML = `
+        <tr>
+            <th>ID</th>
+            <th>Plate Number</th>
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Year</th>
+            <th>Color</th>
+            <th>Owner</th>
+            <th>Actions</th>
+        </tr>
+    `;
+
+    vehicles.forEach(function(vehicle){
+
+        let row = table.insertRow(-1);
+
+        row.innerHTML =
+            "<td>" + vehicle.id + "</td>" +
+            "<td>" + vehicle.plateNumber + "</td>" +
+            "<td>" + vehicle.brand + "</td>" +
+            "<td>" + vehicle.model + "</td>" +
+            "<td>" + vehicle.year + "</td>" +
+            "<td>" + vehicle.color + "</td>" +
+            "<td>" + vehicle.owner + "</td>" +
+            "<td>" +
+            "<button onclick='editVehicle(this)'>Edit</button> " +
+            "<button onclick='deleteVehicle(this)'>Delete</button>" +
+            "</td>";
+
+    });
+
+}
+
+function addVehicle() {
+
+    let plateNumber =
+        document.getElementById("plateNumber").value;
+
+    let brand =
+        document.getElementById("brand").value;
+
+    let model =
+        document.getElementById("model").value;
+
+    let year =
+        document.getElementById("year").value;
+
+    let color =
+        document.getElementById("color").value;
+
+    let owner =
+        document.getElementById("owner").value;
+
+    if(
+        plateNumber === "" ||
+        brand === "" ||
+        model === "" ||
+        year === "" ||
+        color === "" ||
+        owner === ""
+    ){
+        alert("Please complete all fields.");
+        return;
+    }
+
+    let vehicles =
+        JSON.parse(
+            localStorage.getItem("vehicles")
+        ) || [];
+
+    if(editVehicleId !== null){
+
+        vehicles = vehicles.filter(
+            vehicle =>
+            vehicle.id != editVehicleId
+        );
+
+        vehicles.push({
+            id: Number(editVehicleId),
+            plateNumber: plateNumber,
+            brand: brand,
+            model: model,
+            year: year,
+            color: color,
+            owner: owner
+        });
+
+        editVehicleId = null;
+
+    }
+    else{
+
+        vehicles.push({
+            id: vehicleId,
+            plateNumber: plateNumber,
+            brand: brand,
+            model: model,
+            year: year,
+            color: color,
+            owner: owner
+        });
+
+        vehicleId++;
+
+    }
+
+    localStorage.setItem(
+        "vehicles",
+        JSON.stringify(vehicles)
+    );
+
+    localStorage.setItem(
+        "vehicleId",
+        vehicleId
+    );
+
+    document.getElementById("plateNumber").value = "";
+    document.getElementById("brand").value = "";
+    document.getElementById("model").value = "";
+    document.getElementById("year").value = "";
+    document.getElementById("color").value = "";
+    document.getElementById("owner").value = "";
+
+    loadVehicles();
+
+}
+
+function deleteVehicle(button){
+
+    let row =
+        button.closest("tr");
+
+    let id =
+        row.cells[0].innerText;
+
+    let vehicles =
+        JSON.parse(
+            localStorage.getItem("vehicles")
+        ) || [];
+
+    vehicles = vehicles.filter(
+        vehicle =>
+        vehicle.id != id
+    );
+
+    localStorage.setItem(
+        "vehicles",
+        JSON.stringify(vehicles)
+    );
+
+    loadVehicles();
+
+}
+
+function editVehicle(button){
+
+    let row =
+        button.closest("tr");
+
+    editVehicleId =
+        row.cells[0].innerText;
+
+    document.getElementById("plateNumber").value =
+        row.cells[1].innerText;
+
+    document.getElementById("brand").value =
+        row.cells[2].innerText;
+
+    document.getElementById("model").value =
+        row.cells[3].innerText;
+
+    document.getElementById("year").value =
+        row.cells[4].innerText;
+
+    document.getElementById("color").value =
+        row.cells[5].innerText;
+
+    document.getElementById("owner").value =
+        row.cells[6].innerText;
+
+}
+
+</script>
+
+</body>
+</html>
+<hr>
+
+<center>
+    Auto Repair Shop Management System © 2026
+</center>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Billing Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Billing Management</h1>
+
+<hr>
+
+<h3>Customer Information</h3>
+
+<input type="text" id="customerName" placeholder="Customer Name">
+
+<br><br>
+
+<h3>Add Parts</h3>
+
+<input type="text" id="partName" placeholder="Part Name">
+
+<br><br>
+
+<input type="number" id="quantity" placeholder="Quantity">
+
+<br><br>
+
+<input type="number" id="unitPrice" placeholder="Unit Price">
+
+<br><br>
+
+<button onclick="addPart()">Add Part</button>
+
+<hr>
+
+<h3>Parts Used</h3>
+
+<table border="1" id="partsTable">
+
+<tr>
+    <th>Part Name</th>
+    <th>Quantity</th>
+    <th>Unit Price</th>
+    <th>Total</th>
+    <th>Action</th>
+</tr>
+
+</table>
+
+<br>
+
+<h3>Labor Fee</h3>
+
+<input type="number" id="laborFee" placeholder="Labor Fee">
+
+<br><br>
+
+<label>Payment Method</label>
+
+<br><br>
+
+<select id="paymentMethod">
+    <option value="">Select Payment Method</option>
+    <option>Cash</option>
+    <option>GCash</option>
+    <option>Bank Transfer</option>
+    <option>Credit Card</option>
+    <option>Debit Card</option>
+</select>
+
+<br><br>
+
+<button onclick="calculateInvoice()">
+    Calculate Invoice
+</button>
+
+<br><br>
+
+<input type="text" id="partsTotal" placeholder="Parts Total" readonly>
+
+<br><br>
+
+<input type="text" id="grandTotal" placeholder="Grand Total" readonly>
+
+<hr>
+
+<h2>Billing Records</h2>
+
+<table border="1" id="billingTable">
+
+<tr>
+    <th>Customer</th>
+    <th>Grand Total</th>
+    <th>Payment Method</th>
+    <th>Action</th>
+</tr>
+
+</table>
+
+<hr>
+
+<h2>Invoice Preview</h2>
+
+<div class="invoice">
+
+    <h2>Auto Repair Shop</h2>
+
+    <p>
+        <strong>Customer:</strong>
+        <span id="previewCustomer">N/A</span>
+    </p>
+
+    <p>
+        <strong>Payment Method:</strong>
+        <span id="previewPaymentMethod">N/A</span>
+    </p>
+
+    <hr>
+
+    <p>
+        <strong>Parts Total:</strong>
+        ₱<span id="previewPartsTotal">0</span>
+    </p>
+
+    <p>
+        <strong>Labor Fee:</strong>
+        ₱<span id="previewLaborFee">0</span>
+    </p>
+
+    <hr>
+
+    <h3>
+        Grand Total:
+        ₱<span id="previewGrandTotal">0</span>
+    </h3>
+
+    <button onclick="window.print()">
+        Print Invoice
+    </button>
+
+</div>
+
+<script>
+
+window.onload = function() {
+
+    loadInvoices();
+
+};
+
+function addPart() {
+
+    let partName =
+        document.getElementById("partName").value;
+
+    let quantity =
+        Number(document.getElementById("quantity").value);
+
+    let unitPrice =
+        Number(document.getElementById("unitPrice").value);
+
+    if(
+        partName === "" ||
+        quantity === 0 ||
+        unitPrice === 0
+    ){
+        alert("Please complete all part details.");
+        return;
+    }
+
+    let total = quantity * unitPrice;
+
+    let table =
+        document.getElementById("partsTable");
+
+    let row =
+        table.insertRow(-1);
+
+    row.innerHTML =
+        "<td>" + partName + "</td>" +
+        "<td>" + quantity + "</td>" +
+        "<td>₱" + unitPrice + "</td>" +
+        "<td>" + total + "</td>" +
+        "<td><button onclick='deletePart(this)'>Delete</button></td>";
+
+    document.getElementById("partName").value = "";
+    document.getElementById("quantity").value = "";
+    document.getElementById("unitPrice").value = "";
+
+}
+
+function deletePart(button){
+
+    button.closest("tr").remove();
+
+}
+
+function calculateInvoice(){
+
+    let table =
+        document.getElementById("partsTable");
+
+    let rows =
+        table.getElementsByTagName("tr");
+
+    let partsTotal = 0;
+
+    for(let i = 1; i < rows.length; i++){
+
+        partsTotal += Number(rows[i].cells[3].innerText);
+
+    }
+
+    let laborFee =
+        Number(document.getElementById("laborFee").value);
+
+    let grandTotal =
+        partsTotal + laborFee;
+
+    document.getElementById("partsTotal").value =
+        partsTotal;
+
+    document.getElementById("grandTotal").value =
+        grandTotal;
+
+    document.getElementById("previewCustomer").innerText =
+        document.getElementById("customerName").value;
+
+    document.getElementById("previewPaymentMethod").innerText =
+        document.getElementById("paymentMethod").value;
+
+    document.getElementById("previewPartsTotal").innerText =
+        partsTotal;
+
+    document.getElementById("previewLaborFee").innerText =
+        laborFee;
+
+    document.getElementById("previewGrandTotal").innerText =
+        grandTotal;
+
+    saveInvoice(
+        document.getElementById("customerName").value,
+        grandTotal,
+        document.getElementById("paymentMethod").value
+    );
+
+}
+
+function saveInvoice(customer, grandTotal, paymentMethod){
+
+    let invoices =
+        JSON.parse(
+            localStorage.getItem("invoices")
+        ) || [];
+
+    invoices.push({
+        customer: customer,
+        grandTotal: grandTotal,
+        paymentMethod: paymentMethod
+    });
+
+    localStorage.setItem(
+        "invoices",
+        JSON.stringify(invoices)
+    );
+
+    loadInvoices();
+
+}
+
+function loadInvoices(){
+
+    let invoices =
+        JSON.parse(
+            localStorage.getItem("invoices")
+        ) || [];
+
+    let table =
+        document.getElementById("billingTable");
+
+    table.innerHTML = `
+        <tr>
+            <th>Customer</th>
+            <th>Grand Total</th>
+            <th>Payment Method</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+    invoices.forEach(function(invoice,index){
+
+        let row =
+            table.insertRow(-1);
+
+        row.innerHTML =
+            "<td>" + invoice.customer + "</td>" +
+            "<td>₱" + invoice.grandTotal + "</td>" +
+            "<td>" + invoice.paymentMethod + "</td>" +
+            "<td><button onclick='deleteInvoice(" + index + ")'>Delete</button></td>";
+
+    });
+
+}
+
+function deleteInvoice(index){
+
+    let invoices =
+        JSON.parse(
+            localStorage.getItem("invoices")
+        ) || [];
+
+    invoices.splice(index,1);
+
+    localStorage.setItem(
+        "invoices",
+        JSON.stringify(invoices)
+    );
+
+    loadInvoices();
+
+}
+
+</script>
+
+</body>
+</html>
+<hr>
+
+<center>
+    Auto Repair Shop Management System © 2026
+</center>

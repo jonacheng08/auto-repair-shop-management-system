@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Reports</h1>
+
+<hr>
+
+<h2>System Summary Report</h2>
+
+<p>
+    <strong>Report Date:</strong>
+    <span id="reportDate"></span>
+</p>
+
+<table border="1">
+
+<tr>
+    <th>Report</th>
+    <th>Value</th>
+</tr>
+
+<tr>
+    <td>Total Customers</td>
+    <td id="customerCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Vehicles</td>
+    <td id="vehicleCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Mechanics</td>
+    <td id="mechanicCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Inventory Items</td>
+    <td id="inventoryCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Service Records</td>
+    <td id="serviceCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Revenue</td>
+    <td id="revenueCount">₱0</td>
+</tr>
+
+<tr>
+    <td>Pending Repairs</td>
+    <td id="pendingCount">0</td>
+</tr>
+
+<tr>
+    <td>Completed Repairs</td>
+    <td id="completedCount">0</td>
+</tr>
+
+</table>
+
+<br><br>
+
+<button onclick="window.print()">
+    Print Report
+</button>
+
+<script>
+
+const today = new Date();
+
+document.getElementById("reportDate").innerText =
+    today.toLocaleDateString();
+
+let customers =
+    JSON.parse(localStorage.getItem("customers")) || [];
+
+let vehicles =
+    JSON.parse(localStorage.getItem("vehicles")) || [];
+
+let mechanics =
+    JSON.parse(localStorage.getItem("mechanics")) || [];
+
+let parts =
+    JSON.parse(localStorage.getItem("parts")) || [];
+
+let services =
+    JSON.parse(localStorage.getItem("services")) || [];
+
+let invoices =
+    JSON.parse(localStorage.getItem("invoices")) || [];
+
+document.getElementById("customerCount").innerText =
+    customers.length;
+
+document.getElementById("vehicleCount").innerText =
+    vehicles.length;
+
+document.getElementById("mechanicCount").innerText =
+    mechanics.length;
+
+document.getElementById("inventoryCount").innerText =
+    parts.length;
+
+document.getElementById("serviceCount").innerText =
+    services.length;
+
+let pendingCount =
+    services.filter(service =>
+        service.status === "Pending"
+    ).length;
+
+document.getElementById("pendingCount").innerText =
+    pendingCount;
+
+let completedCount =
+    services.filter(service =>
+        service.status === "Completed"
+    ).length;
+
+document.getElementById("completedCount").innerText =
+    completedCount;
+
+let totalRevenue = 0;
+
+invoices.forEach(function(invoice){
+
+    totalRevenue +=
+        Number(invoice.grandTotal);
+
+});
+
+document.getElementById("revenueCount").innerText =
+    "₱" + totalRevenue.toLocaleString();
+
+</script>
+
+</body>
+</html>
+<hr>
+
+<center>
+    Auto Repair Shop Management System © 2026
+</center>
+
