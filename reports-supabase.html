@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports - Supabase</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav>
+     <a href="dashboard-supabase.html">Dashboard</a> |
+    <a href="customers-supabase.html">Customers</a> |
+<a href="vehicles-supabase.html">Vehicles</a> |
+<a href="mechanics-supabase.html">Mechanics</a> |
+<a href="inventory-supabase.html">Inventory</a> |
+<a href="services-supabase.html">Services</a> |
+<a href="billing-supabase-v2.html">Billing</a> |
+<a href="reports-supabase.html">Reports</a> |
+<a href="index.html">Logout</a>
+
+</nav>
+
+<h1>🌸 Reports 🌸</h1>
+
+<hr>
+
+<p>
+    <strong>Report Date:</strong>
+    <span id="reportDate"></span>
+</p>
+
+<table border="1">
+
+<tr>
+    <th>Report</th>
+    <th>Value</th>
+</tr>
+
+<tr>
+    <td>Total Customers</td>
+    <td id="customerCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Vehicles</td>
+    <td id="vehicleCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Mechanics</td>
+    <td id="mechanicCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Inventory Items</td>
+    <td id="inventoryCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Service Records</td>
+    <td id="serviceCount">0</td>
+</tr>
+
+<tr>
+    <td>Pending Repairs</td>
+    <td id="pendingCount">0</td>
+</tr>
+
+<tr>
+    <td>Completed Repairs</td>
+    <td id="completedCount">0</td>
+</tr>
+
+<tr>
+    <td>Total Revenue</td>
+    <td id="revenueCount">₱0</td>
+</tr>
+
+</table>
+
+<br><br>
+
+<button onclick="window.print()">
+    Print Report
+</button>
+
+<script>
+
+const supabaseUrl =
+"https://vopmdpaxxqejttenxcge.supabase.co";
+
+const supabaseKey =
+"sb_publishable_VrWfYD5jljm4i1g14UkasA_jo1lB3IM";
+
+const client =
+supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+);
+
+const today = new Date();
+
+document.getElementById("reportDate").innerText =
+today.toLocaleDateString();
+
+loadReport();
+
+async function loadReport(){
+
+    const customers =
+        await client.from("customers").select("*");
+
+    const vehicles =
+        await client.from("vehicles").select("*");
+
+    const mechanics =
+        await client.from("mechanics").select("*");
+
+    const inventory =
+        await client.from("inventory").select("*");
+
+    const services =
+        await client.from("services").select("*");
+
+    const invoices =
+        await client.from("invoices").select("*");
+
+    document.getElementById("customerCount").innerText =
+        customers.data.length;
+
+    document.getElementById("vehicleCount").innerText =
+        vehicles.data.length;
+
+    document.getElementById("mechanicCount").innerText =
+        mechanics.data.length;
+
+    document.getElementById("inventoryCount").innerText =
+        inventory.data.length;
+
+    document.getElementById("serviceCount").innerText =
+        services.data.length;
+
+    let pending =
+        services.data.filter(
+            service => service.status === "Pending"
+        );
+
+    document.getElementById("pendingCount").innerText =
+        pending.length;
+
+    let completed =
+        services.data.filter(
+            service => service.status === "Completed"
+        );
+
+    document.getElementById("completedCount").innerText =
+        completed.length;
+
+    let totalRevenue = 0;
+
+    invoices.data.forEach(function(invoice){
+
+        totalRevenue +=
+            Number(invoice.grand_total);
+
+    });
+
+    document.getElementById("revenueCount").innerText =
+        "₱" + totalRevenue.toLocaleString();
+
+}
+
+</script>
+
+</body>
+</html>

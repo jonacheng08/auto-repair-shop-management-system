@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mechanic Management - Supabase</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav>
+    <a href="dashboard-supabase.html">Dashboard</a> |
+    <a href="customers-supabase.html">Customers</a> |
+<a href="vehicles-supabase.html">Vehicles</a> |
+<a href="mechanics-supabase.html">Mechanics</a> |
+<a href="inventory-supabase.html">Inventory</a> |
+<a href="services-supabase.html">Services</a> |
+<a href="billing-supabase-v2.html">Billing</a> |
+<a href="reports-supabase.html">Reports</a> |
+<a href="index.html">Logout</a>
+</nav>
+
+<h1>Mechanic Management</h1>
+
+<hr>
+
+<h3>Add New Mechanic</h3>
+
+<input type="text" id="mechanicName" placeholder="Mechanic Name">
+
+<br><br>
+
+<input type="text" id="contactNumber" placeholder="Contact Number">
+
+<br><br>
+
+<input type="text" id="specialization" placeholder="Specialization">
+
+<br><br>
+
+<select id="status">
+    <option value="">Select Status</option>
+    <option>Active</option>
+    <option>Inactive</option>
+</select>
+
+<br><br>
+
+<button onclick="addMechanic()">
+    Add Mechanic
+</button>
+
+<hr>
+
+<h3>Mechanic Records</h3>
+
+<table border="1" id="mechanicTable">
+
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Contact Number</th>
+    <th>Specialization</th>
+    <th>Status</th>
+    <th>Action</th>
+</tr>
+
+</table>
+
+<script>
+
+const supabaseUrl =
+"https://vopmdpaxxqejttenxcge.supabase.co";
+
+const supabaseKey =
+"sb_publishable_VrWfYD5jljm4i1g14UkasA_jo1lB3IM";
+
+const client =
+supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+);
+
+window.onload = function() {
+
+    loadMechanics();
+
+};
+
+async function loadMechanics() {
+
+    const { data, error } =
+        await client
+        .from("mechanics")
+        .select("*")
+        .order("id");
+
+    if(error){
+
+        alert(error.message);
+        return;
+
+    }
+
+    let table =
+        document.getElementById("mechanicTable");
+
+    table.innerHTML = `
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Contact Number</th>
+            <th>Specialization</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+    data.forEach(mechanic => {
+
+        let row =
+            table.insertRow(-1);
+
+        row.innerHTML =
+            "<td>" + mechanic.id + "</td>" +
+            "<td>" + mechanic.name + "</td>" +
+            "<td>" + mechanic.contact + "</td>" +
+            "<td>" + mechanic.specialization + "</td>" +
+            "<td>" + mechanic.status + "</td>" +
+            "<td>" +
+            "<button onclick='deleteMechanic(" + mechanic.id + ")'>Delete</button>" +
+            "</td>";
+
+    });
+
+}
+
+async function addMechanic() {
+
+    const { error } =
+        await client
+        .from("mechanics")
+        .insert([
+            {
+                name:
+                    document.getElementById("mechanicName").value,
+
+                contact:
+                    document.getElementById("contactNumber").value,
+
+                specialization:
+                    document.getElementById("specialization").value,
+
+                status:
+                    document.getElementById("status").value
+            }
+        ]);
+
+    if(error){
+
+        alert(error.message);
+        return;
+
+    }
+
+    alert("Mechanic Added!");
+
+    document.getElementById("mechanicName").value = "";
+    document.getElementById("contactNumber").value = "";
+    document.getElementById("specialization").value = "";
+    document.getElementById("status").value = "";
+
+    loadMechanics();
+
+}
+
+async function deleteMechanic(id){
+
+    if(!confirm("Delete this mechanic?")){
+
+        return;
+
+    }
+
+    const { error } =
+        await client
+        .from("mechanics")
+        .delete()
+        .eq("id", id);
+
+    if(error){
+
+        alert(error.message);
+        return;
+
+    }
+
+    loadMechanics();
+
+}
+
+</script>
+
+</body>
+</html>
