@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vehicle Management - Supabase</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav>
+    <a href="dashboard-supabase.html">Dashboard</a> |
+    <a href="customers-supabase.html">Customers</a> |
+    <a href="vehicles-supabase.html">Vehicles</a> |
+    <a href="mechanics-supabase.html">Mechanics</a> |
+    <a href="inventory-supabase.html">Inventory</a> |
+    <a href="services-supabase.html">Services</a> |
+    <a href="billing-supabase-v2.html">Billing</a> |
+    <a href="reports-supabase.html">Reports</a> |
+    <a href="index.html">Logout</a>
+</nav>
+
+<h1>Vehicle Management</h1>
+
+<hr>
+
+<h3>Add New Vehicle</h3>
+
+<input type="text" id="plateNumber" placeholder="Plate Number">
+
+<br><br>
+
+<input type="text" id="brand" placeholder="Brand">
+
+<br><br>
+
+<input type="text" id="model" placeholder="Model">
+
+<br><br>
+
+<input type="text" id="year" placeholder="Year">
+
+<br><br>
+
+<input type="text" id="color" placeholder="Color">
+
+<br><br>
+
+<input type="text" id="owner" placeholder="Owner">
+
+<br><br>
+
+<button onclick="saveVehicle()">
+    Save Vehicle
+</button>
+
+<hr>
+
+<h3>Vehicle Records</h3>
+
+<table border="1" id="vehicleTable">
+
+<tr>
+    <th>ID</th>
+    <th>Plate Number</th>
+    <th>Brand</th>
+    <th>Model</th>
+    <th>Year</th>
+    <th>Color</th>
+    <th>Owner</th>
+    <th>Actions</th>
+</tr>
+
+</table>
+
+<script>
+
+const supabaseUrl =
+"https://vopmdpaxxqejttenxcge.supabase.co";
+
+const supabaseKey =
+"sb_publishable_VrWfYD5jljm4i1g14UkasA_jo1lB3IM";
+
+const client =
+supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+);
+
+let editVehicleId = null;
+
+window.onload = function() {
+
+    loadVehicles();
+
+};
+
+async function loadVehicles() {
+
+    const { data, error } =
+        await client
+        .from("vehicles")
+        .select("*")
+        .order("id");
+
+    if(error){
+        alert(error.message);
+        return;
+    }
+
+    let table =
+        document.getElementById("vehicleTable");
+
+    table.innerHTML = `
+        <tr>
+            <th>ID</th>
+            <th>Plate Number</th>
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Year</th>
+            <th>Color</th>
+            <th>Owner</th>
+            <th>Actions</th>
+        </tr>
+    `;
+
+    data.forEach(vehicle => {
+
+        let row =
+            table.insertRow(-1);
+
+        row.innerHTML =
+            "<td>" + vehicle.id + "</td>" +
+            "<td>" + vehicle.plate_number + "</td>" +
+            "<td>" + vehicle.brand + "</td>" +
+            "<td>" + vehicle.model + "</td>" +
+            "<td>" + vehicle.year + "</td>" +
+            "<td>" + vehicle.color + "</td>" +
+            "<td>" + vehicle.owner + "</td>" +
+            "<td>" +
+            "<button onclick='editVehicle(" + vehicle.id + ")'>Edit</button> " +
+            "<button onclick='deleteVehicle(" + vehicle.id + ")'>Delete</button>" +
+            "</td>";
+
+    });
+
+}
+
+async function saveVehicle() {
+
+    let plate =
+        document.getElementById("plateNumber").value;
+
+    let brand =
+        document.getElementById("brand").value;
+
+    let model =
+        document.getElementById("model").value;
+
+    let year =
+        document.getElementById("year").value;
+
+    let color =
+        document.getElementById("color").value;
+
+    let owner =
+        document.getElementById("owner").value;
+
+    if(
+        plate === "" ||
+        brand === "" ||
+        model === "" ||
+        year === "" ||
+        color === "" ||
+        owner === ""
+    ){
+        alert("Please complete all fields.");
+        return;
+    }
+
+    if(editVehicleId === null){
+
+        const { error } =
+            await client
+            .from("vehicles")
+            .insert([
+                {
+                    plate_number: plate,
+                    brand: brand,
+                    model: model,
+                    year: year,
+                    color: color,
+                    owner: owner
+                }
+            ]);
+
+        if(error){
+            alert(error.message);
+            return;
+        }
+
+    } else {
+
+        const { error } =
+            await client
+            .from("vehicles")
+            .update({
+                plate_number: plate,
+                brand: brand,
+                model: model,
+                year: year,
+                color: color,
+                owner: owner
+            })
+            .eq("id", editVehicleId);
+
+        if(error){
+            alert(error.message);
+            return;
+        }
+
+        editVehicleId = null;
+
+    }
+
+    document.getElementById("plateNumber").value = "";
+    document.getElementById("brand").value = "";
+    document.getElementById("model").value = "";
+    document.getElementById("year").value = "";
+    document.getElementById("color").value = "";
+    document.getElementById("owner").value = "";
+
+    loadVehicles();
+
+}
+
+async function editVehicle(id){
+
+    const { data, error } =
+        await client
+        .from("vehicles")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    if(error){
+        alert(error.message);
+        return;
+    }
+
+    document.getElementById("plateNumber").value =
+        data.plate_number;
+
+    document.getElementById("brand").value =
+        data.brand;
+
+    document.getElementById("model").value =
+        data.model;
+
+    document.getElementById("year").value =
+        data.year;
+
+    document.getElementById("color").value =
+        data.color;
+
+    document.getElementById("owner").value =
+        data.owner;
+
+    editVehicleId = id;
+
+}
+
+async function deleteVehicle(id){
+
+    if(!confirm("Delete this vehicle?")){
+        return;
+    }
+
+    const { error } =
+        await client
+        .from("vehicles")
+        .delete()
+        .eq("id", id);
+
+    if(error){
+        alert(error.message);
+        return;
+    }
+
+    loadVehicles();
+
+}
+
+</script>
+
+</body>
+</html>

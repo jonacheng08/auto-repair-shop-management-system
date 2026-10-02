@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Supabase</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav>
+    <a href="dashboard-supabase.html">Dashboard</a> |
+    <a href="customers-supabase.html">Customers</a> |
+<a href="vehicles-supabase.html">Vehicles</a> |
+<a href="mechanics-supabase.html">Mechanics</a> |
+<a href="inventory-supabase.html">Inventory</a> |
+<a href="services-supabase.html">Services</a> |
+<a href="billing-supabase-v2.html">Billing</a> |
+<a href="reports-supabase.html">Reports</a> |
+<a href="index.html">Logout</a>
+
+</nav>
+
+<h1>🌸 Auto Repair Shop Dashboard 🌸</h1>
+
+<div class="card">
+
+    <h2>Welcome!</h2>
+
+    <p style="font-size:16px;">
+        Manage customers, vehicles, repairs, inventory,
+        billing and reports from one dashboard.
+    </p>
+
+</div>
+
+<br>
+
+<div class="dashboard-grid">
+
+    <div class="card">
+        <h2>Total Customers</h2>
+        <p id="customerCount">0</p>
+    </div>
+
+    <div class="card">
+        <h2>Total Vehicles</h2>
+        <p id="vehicleCount">0</p>
+    </div>
+
+    <div class="card">
+        <h2>Repair Orders</h2>
+        <p id="serviceCount">0</p>
+    </div>
+
+    <div class="card">
+        <h2>Inventory Items</h2>
+        <p id="inventoryCount">0</p>
+    </div>
+
+    <div class="card">
+        <h2>Monthly Revenue</h2>
+        <p id="revenueCount">₱0</p>
+    </div>
+
+    <div class="card">
+        <h2>Active Mechanics</h2>
+        <p id="mechanicCount">0</p>
+    </div>
+
+    <div class="card">
+        <h2>Pending Repairs</h2>
+        <p id="pendingCount">0</p>
+    </div>
+
+    <div class="card">
+        <h2>Completed Repairs</h2>
+        <p id="completedCount">0</p>
+    </div>
+
+</div>
+
+<script>
+
+const supabaseUrl =
+"https://vopmdpaxxqejttenxcge.supabase.co";
+
+const supabaseKey =
+"sb_publishable_VrWfYD5jljm4i1g14UkasA_jo1lB3IM";
+
+const client =
+supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+);
+
+loadDashboard();
+
+async function loadDashboard() {
+
+    const customers =
+        await client.from("customers").select("*");
+
+    const vehicles =
+        await client.from("vehicles").select("*");
+
+    const mechanics =
+        await client.from("mechanics").select("*");
+
+    const inventory =
+        await client.from("inventory").select("*");
+
+    const services =
+        await client.from("services").select("*");
+
+    const invoices =
+        await client.from("invoices").select("*");
+
+    document.getElementById("customerCount").innerText =
+        customers.data.length;
+
+    document.getElementById("vehicleCount").innerText =
+        vehicles.data.length;
+
+    document.getElementById("mechanicCount").innerText =
+        mechanics.data.length;
+
+    document.getElementById("inventoryCount").innerText =
+        inventory.data.length;
+
+    document.getElementById("serviceCount").innerText =
+        services.data.length;
+
+    let pending =
+        services.data.filter(
+            service => service.status === "Pending"
+        );
+
+    document.getElementById("pendingCount").innerText =
+        pending.length;
+
+    let completed =
+        services.data.filter(
+            service => service.status === "Completed"
+        );
+
+    document.getElementById("completedCount").innerText =
+        completed.length;
+
+    let totalRevenue = 0;
+
+    invoices.data.forEach(function(invoice){
+
+        totalRevenue +=
+            Number(invoice.grand_total);
+
+    });
+
+    document.getElementById("revenueCount").innerText =
+        "₱" + totalRevenue.toLocaleString();
+
+}
+
+</script>
+
+</body>
+</html>
