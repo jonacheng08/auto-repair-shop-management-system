@@ -94,7 +94,7 @@ const supabaseUrl =
 "https://vopmdpaxxqejttenxcge.supabase.co";
 
 const supabaseKey =
-"YOUR_SUPABASE_KEY";
+"sb_publishable_VrWfYD5jljm4i1g14UkasA_jo1lB3IM";
 
 const client =
 supabase.createClient(
@@ -104,13 +104,13 @@ supabase.createClient(
 
 let editServiceId = null;
 
-window.onload = async function(){
+window.onload = async function () {
 
     await loadServices();
 
 };
 
-async function loadServices(){
+async function loadServices() {
 
     const { data, error } =
         await client
@@ -118,228 +118,84 @@ async function loadServices(){
         .select("*")
         .order("id");
 
-    if(e*ror){
-        alert(error.message)*
+    if (error) {
+        alert(error.message);
         return;
     }
 
-    let ta*le =
-        document.getElementBy*d("serviceTable");
+    let table =
+        document.getElementById("serviceTable");
 
-    table.inne*HTML = `
+    table.innerHTML = `
         <tr>
-            *th>ID</th>
-            <th>Plate N*mber</th>
-            <th>Vehicle<*th>
+            <th>ID</th>
+            <th>Plate Number</th>
+            <th>Vehicle</th>
             <th>Mechanic</th>
-*           <th>Problem</th>
-      *     <th>Status</th>
-            <*h>Labor Fee</th>
-            <th>A*tions</th>
+            <th>Problem</th>
+            <th>Status</th>
+            <th>Labor Fee</th>
+            <th>Actions</th>
         </tr>
     `;
 
- *  data.forEach(service => {
+    data.forEach(service => {
 
-     *  let row =
-            table.inse*tRow(-1);
+        let row =
+            table.insertRow(-1);
 
-        row.innerHTML =*            "<td>" + service.id + *</td>" +
-            "<td>" + (ser*ice.plate_number || "") + "</td>" *
-            "<td>" + service.vehi*le + "</td>" +
-            "<td>" * service.mechanic + "</td>" +
-    *       "<td>" + service.problem + *</td>" +
-            "<td>" + serv*ce.status + "</td>" +
-            *<td>" + service.labor_fee + "</td>* +
+        row.innerHTML =
+            "<td>" + service.id + "</td>" +
+            "<td>" + (service.plate_number || "") + "</td>" +
+            "<td>" + service.vehicle + "</td>" +
+            "<td>" + service.mechanic + "</td>" +
+            "<td>" + service.problem + "</td>" +
+            "<td>" + service.status + "</td>" +
+            "<td>" + service.labor_fee + "</td>" +
             "<td>" +
-          * "<button onclick='editService(" +*service.id + ")'>Edit</button> " +*            "<button onclick='dele*eService(" + service.id + ")'>Dele*e</button>" +
-            "</td>";*
+            "<button onclick='editService(" + service.id + ")'>Edit</button> " +
+            "<button onclick='deleteService(" + service.id + ")'>Delete</button>" +
+            "</td>";
+
     });
 
 }
 
-async function saveSe*vice(){
+async function saveService() {
 
     let vehicle =
-       *document.getElementById("vehicle")*value;
+        document.getElementById("vehicle").value;
 
     let plateNumber =
-    *   document.getElementById("plateN*mber").value;
+        document.getElementById("plateNumber").value;
 
     let mechanic =
-*       document.getElementById("me*hanic").value;
+        document.getElementById("mechanic").value;
 
     let problem =
-*       document.getElementById("pr*blem").value;
+        document.getElementById("problem").value;
 
     let status =
-  *     document.getElementById("stat*s").value;
+        document.getElementById("status").value;
 
     let laborFee =
-   *    document.getElementById("labor*ee").value;
+        document.getElementById("laborFee").value;
 
-    if(
-        vehic*e === "" ||
-        plateNumber ==* "" ||
+    if (
+        vehicle === "" ||
+        plateNumber === "" ||
         mechanic === "" ||
-*       problem === "" ||
-        s*atus === "" ||
-        laborFee ==* ""
-    ){
-        alert("Please c*mplete all fields.");
-        retu*n;
+        problem === "" ||
+        status === "" ||
+        laborFee === ""
+    ) {
+        alert("Please complete all fields.");
+        return;
     }
 
-    if(editServiceId ===*null){
-
-        const { error } =
-*           await client
-          * .from("services")
-            .in*ert([
-                {
-                    plate_number: plateNumber,
-                    vehicle: vehicle,
-                    mechanic: mechanic,
-                    problem: problem,
-                    status: status,
-                    labor_fee: laborFee
-                }
-            ]);
-
-        if(error*{
-            alert(error.message)*
-            return;
-        }
-
-    } else {
+    if (editServiceId === null) {
 
         const { error } =
             await client
             .from("services")
-            .update({
-                plate_number: plateNumber,
-                vehicle: vehicle,
-                mechanic: mechanic,
-                problem: problem,
-                status: status,
-                labor_fee: laborFee
-            })
-            .eq("id", editServiceId);
-
-        if(error){
-            alert(error.message);
-            return;
-        }
-
-        editServiceId = null;
-
-    }
-
-    document.getElementById("vehicle").value = "";
-    document.getElementById("plateNumber").value = "";
-    document.getElementById("mechanic").value = "";
-    document.getElementById("problem").value = "";
-    document.getElementById("status").value = "";
-    document.getElementById("laborFee").value = "";
-
-    await loadServices();
-
-}
-
-async function editService(id){
-
-    const { data, error } =
-        await client
-        .from("services")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-    if(error){
-        alert(error.message);
-        return;
-    }
-
-    document.getElementById("vehicle").value =
-        data.vehicle;
-
-    document.getElementById("plateNumber").value =
-        data.plate_number;
-
-    document.getElementById("mechanic").value =
-        data.mechanic;
-
-    document.getElementById("problem").value =
-        data.problem;
-
-    document.getElementById("status").value =
-        data.status;
-
-    document.getElementById("laborFee").value =
-        data.labor_fee;
-
-    editServiceId = id;
-
-}
-
-function searchService(){
-
-    let input =
-        document.getElementById("searchInput")
-        .value
-        .toLowerCase();
-
-    let rows =
-        document.querySelectorAll(
-            "#serviceTable tr"
-        );
-
-    rows.forEach(function(row,index){
-
-        if(index === 0){
-            return;
-        }
-
-        let text =
-            row.textContent.toLowerCase();
-
-        if(text.includes(input)){
-
-            row.style.display = "";
-
-        }
-        else{
-
-            row.style.display = "none";
-
-        }
-
-    });
-
-}
-
-async function deleteService(id){
-
-    if(!confirm("Delete this service record?")){
-        return;
-    }
-
-    const { error } =
-        await client
-        .from("services")
-        .delete()
-        .eq("id", id);
-
-    if(error){
-        alert(error.message);
-        return;
-    }
-
-    await loadServices();
-
-}
-
-</script>
-
-</body>
-</html>
+          
