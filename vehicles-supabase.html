@@ -58,6 +58,16 @@
 
 <hr>
 
+<h3>Search Vehicle</h3>
+
+<input
+    type="text"
+    id="searchInput"
+    placeholder="Search by Plate Number, Brand, Model, Owner, Color, or Year"
+    onkeyup="searchVehicle()">
+
+<br><br>
+
 <h3>Vehicle Records</h3>
 
 <table border="1" id="vehicleTable">
@@ -272,6 +282,42 @@ async function editVehicle(id){
 
 }
 
+function searchVehicle(){
+
+    let input =
+        document.getElementById("searchInput")
+        .value
+        .toLowerCase();
+
+    let rows =
+        document.querySelectorAll(
+            "#vehicleTable tr"
+        );
+
+    rows.forEach(function(row, index){
+
+        if(index === 0){
+            return;
+        }
+
+        let text =
+            row.textContent.toLowerCase();
+
+        if(text.includes(input)){
+
+            row.style.display = "";
+
+        }
+        else{
+
+            row.style.display = "none";
+
+        }
+
+    });
+
+}
+
 async function deleteVehicle(id){
 
     if(!confirm("Delete this vehicle?")){
@@ -289,7 +335,7 @@ async function deleteVehicle(id){
         return;
     }
 
-    loadVehicles();
+    await loadVehicles();
 
 }
 
