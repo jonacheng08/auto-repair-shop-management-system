@@ -30,6 +30,10 @@
 
 <br><br>
 
+<input type="text" id="plateNumber" placeholder="Plate Number">
+
+<br><br>
+
 <input type="text" id="mechanic" placeholder="Mechanic">
 
 <br><br>
@@ -57,10 +61,23 @@
 
 <hr>
 
+<h3>Search Service</h3>
+
+<input
+    type="text"
+    id="searchInput"
+    placeholder="Search Plate Number, Vehicle, Mechanic, Problem or Status"
+    onkeyup="searchService()">
+
+<br><br>
+
+<hr>
+
 <table border="1" id="serviceTable">
 
 <tr>
     <th>ID</th>
+    <th>Plate Number</th>
     <th>Vehicle</th>
     <th>Mechanic</th>
     <th>Problem</th>
@@ -77,7 +94,7 @@ const supabaseUrl =
 "https://vopmdpaxxqejttenxcge.supabase.co";
 
 const supabaseKey =
-"sb_publishable_VrWfYD5jljm4i1g14UkasA_jo1lB3IM";
+"YOUR_SUPABASE_KEY";
 
 const client =
 supabase.createClient(
@@ -87,8 +104,10 @@ supabase.createClient(
 
 let editServiceId = null;
 
-window.onload = function() {
-    loadServices();
+window.onload = async function(){
+
+    await loadServices();
+
 };
 
 async function loadServices(){
@@ -99,82 +118,86 @@ async function loadServices(){
         .select("*")
         .order("id");
 
-    if(error){
-        alert(error.message);
+    if(e*ror){
+        alert(error.message)*
         return;
     }
 
-    let table =
-        document.getElementById("serviceTable");
+    let ta*le =
+        document.getElementBy*d("serviceTable");
 
-    table.innerHTML = `
+    table.inne*HTML = `
         <tr>
-            <th>ID</th>
-            <th>Vehicle</th>
+            *th>ID</th>
+            <th>Plate N*mber</th>
+            <th>Vehicle<*th>
             <th>Mechanic</th>
-            <th>Problem</th>
-            <th>Status</th>
-            <th>Labor Fee</th>
-            <th>Actions</th>
+*           <th>Problem</th>
+      *     <th>Status</th>
+            <*h>Labor Fee</th>
+            <th>A*tions</th>
         </tr>
     `;
 
-    data.forEach(service => {
+ *  data.forEach(service => {
 
-        let row =
-            table.insertRow(-1);
+     *  let row =
+            table.inse*tRow(-1);
 
-        row.innerHTML =
-            "<td>" + service.id + "</td>" +
-            "<td>" + service.vehicle + "</td>" +
-            "<td>" + service.mechanic + "</td>" +
-            "<td>" + service.problem + "</td>" +
-            "<td>" + service.status + "</td>" +
-            "<td>" + service.labor_fee + "</td>" +
+        row.innerHTML =*            "<td>" + service.id + *</td>" +
+            "<td>" + (ser*ice.plate_number || "") + "</td>" *
+            "<td>" + service.vehi*le + "</td>" +
+            "<td>" * service.mechanic + "</td>" +
+    *       "<td>" + service.problem + *</td>" +
+            "<td>" + serv*ce.status + "</td>" +
+            *<td>" + service.labor_fee + "</td>* +
             "<td>" +
-            "<button onclick='editService(" + service.id + ")'>Edit</button> " +
-            "<button onclick='deleteService(" + service.id + ")'>Delete</button>" +
-            "</td>";
-
+          * "<button onclick='editService(" +*service.id + ")'>Edit</button> " +*            "<button onclick='dele*eService(" + service.id + ")'>Dele*e</button>" +
+            "</td>";*
     });
 
 }
 
-async function saveService(){
+async function saveSe*vice(){
 
     let vehicle =
-        document.getElementById("vehicle").value;
+       *document.getElementById("vehicle")*value;
+
+    let plateNumber =
+    *   document.getElementById("plateN*mber").value;
 
     let mechanic =
-        document.getElementById("mechanic").value;
+*       document.getElementById("me*hanic").value;
 
     let problem =
-        document.getElementById("problem").value;
+*       document.getElementById("pr*blem").value;
 
     let status =
-        document.getElementById("status").value;
+  *     document.getElementById("stat*s").value;
 
     let laborFee =
-        document.getElementById("laborFee").value;
+   *    document.getElementById("labor*ee").value;
 
     if(
-        vehicle === "" ||
+        vehic*e === "" ||
+        plateNumber ==* "" ||
         mechanic === "" ||
-        problem === "" ||
-        status === "" ||
-        laborFee === ""
+*       problem === "" ||
+        s*atus === "" ||
+        laborFee ==* ""
     ){
-        alert("Please complete all fields.");
-        return;
+        alert("Please c*mplete all fields.");
+        retu*n;
     }
 
-    if(editServiceId === null){
+    if(editServiceId ===*null){
 
         const { error } =
-            await client
-            .from("services")
-            .insert([
+*           await client
+          * .from("services")
+            .in*ert([
                 {
+                    plate_number: plateNumber,
                     vehicle: vehicle,
                     mechanic: mechanic,
                     problem: problem,
@@ -183,8 +206,8 @@ async function saveService(){
                 }
             ]);
 
-        if(error){
-            alert(error.message);
+        if(error*{
+            alert(error.message)*
             return;
         }
 
@@ -194,6 +217,7 @@ async function saveService(){
             await client
             .from("services")
             .update({
+                plate_number: plateNumber,
                 vehicle: vehicle,
                 mechanic: mechanic,
                 problem: problem,
@@ -212,12 +236,13 @@ async function saveService(){
     }
 
     document.getElementById("vehicle").value = "";
+    document.getElementById("plateNumber").value = "";
     document.getElementById("mechanic").value = "";
     document.getElementById("problem").value = "";
     document.getElementById("status").value = "";
     document.getElementById("laborFee").value = "";
 
-    loadServices();
+    await loadServices();
 
 }
 
@@ -238,6 +263,9 @@ async function editService(id){
     document.getElementById("vehicle").value =
         data.vehicle;
 
+    document.getElementById("plateNumber").value =
+        data.plate_number;
+
     document.getElementById("mechanic").value =
         data.mechanic;
 
@@ -251,6 +279,42 @@ async function editService(id){
         data.labor_fee;
 
     editServiceId = id;
+
+}
+
+function searchService(){
+
+    let input =
+        document.getElementById("searchInput")
+        .value
+        .toLowerCase();
+
+    let rows =
+        document.querySelectorAll(
+            "#serviceTable tr"
+        );
+
+    rows.forEach(function(row,index){
+
+        if(index === 0){
+            return;
+        }
+
+        let text =
+            row.textContent.toLowerCase();
+
+        if(text.includes(input)){
+
+            row.style.display = "";
+
+        }
+        else{
+
+            row.style.display = "none";
+
+        }
+
+    });
 
 }
 
@@ -271,7 +335,7 @@ async function deleteService(id){
         return;
     }
 
-    loadServices();
+    await loadServices();
 
 }
 
