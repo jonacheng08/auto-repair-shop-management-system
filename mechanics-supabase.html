@@ -54,6 +54,18 @@
 
 <hr>
 
+<h3>Search Mechanic</h3>
+
+<input
+    type="text"
+    id="searchInput"
+    placeholder="Search by Name, Contact, Specialization, or Status"
+    onkeyup="searchMechanic()">
+
+<br><br>
+
+<hr>
+
 <h3>Mechanic Records</h3>
 
 <table border="1" id="mechanicTable">
@@ -234,6 +246,42 @@ async function editMechanic(id){
 
 }
 
+function searchMechanic(){
+
+let input =
+document.getElementById("searchInput")
+.value
+.toLowerCase();
+
+let rows =
+document.querySelectorAll(
+"#mechanicTable tr"
+);
+
+rows.forEach(function(row, index){
+
+if(index === 0){
+return;
+}
+
+let text =
+row.textContent.toLowerCase();
+
+if(text.includes(input)){
+
+row.style.display = "";
+
+}
+else{
+
+row.style.display = "none";
+
+}
+
+});
+
+}
+
 async function deleteMechanic(id){
 
     if(!confirm("Delete this mechanic?")){
@@ -255,7 +303,7 @@ async function deleteMechanic(id){
 
     }
 
-    loadMechanics();
+    await loadMechanics();
 
 }
 
