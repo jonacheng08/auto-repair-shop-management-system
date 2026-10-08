@@ -198,4 +198,150 @@ async function saveService() {
         const { error } =
             await client
             .from("services")
-          
+            .insert([
+                {
+                    plate_number: plateNumber,
+                    vehicle: vehicle,
+                    mechanic: mechanic,
+                    problem: problem,
+                    status: status,
+                    labor_fee: laborFee
+                }
+            ]);
+
+        if (error) {
+            alert(error.message);
+            return;
+        }
+
+    } else {
+
+        const { error } =
+            await client
+            .from("services")
+            .update({
+                plate_number: plateNumber,
+                vehicle: vehicle,
+                mechanic: mechanic,
+                problem: problem,
+                status: status,
+                labor_fee: laborFee
+            })
+            .eq("id", editServiceId);
+
+        if (error) {
+            alert(error.message);
+            return;
+        }
+
+        editServiceId = null;
+
+    }
+
+    document.getElementById("vehicle").value = "";
+    document.getElementById("plateNumber").value = "";
+    document.getElementById("mechanic").value = "";
+    document.getElementById("problem").value = "";
+    document.getElementById("status").value = "";
+    document.getElementById("laborFee").value = "";
+
+    await loadServices();
+
+}
+
+async function editService(id) {
+
+    const { data, error } =
+        await client
+        .from("services")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    if (error) {
+        alert(error.message);
+        return;
+    }
+
+    document.getElementById("vehicle").value =
+        data.vehicle;
+
+    document.getElementById("plateNumber").value =
+        data.plate_number;
+
+    document.getElementById("mechanic").value =
+        data.mechanic;
+
+    document.getElementById("problem").value =
+        data.problem;
+
+    document.getElementById("status").value =
+        data.status;
+
+    document.getElementById("laborFee").value =
+        data.labor_fee;
+
+    editServiceId = id;
+
+}
+
+function searchService() {
+
+    let input =
+        document.getElementById("searchInput")
+        .value
+        .toLowerCase();
+
+    let rows =
+        document.querySelectorAll(
+            "#serviceTable tr"
+        );
+
+    rows.forEach(function(row, index) {
+
+        if (index === 0) {
+            return;
+        }
+
+        let text =
+            row.textContent.toLowerCase();
+
+        if (text.includes(input)) {
+
+            row.style.display = "";
+
+        } else {
+
+            row.style.display = "none";
+
+        }
+
+    });
+
+}
+
+async function deleteService(id) {
+
+    if (!confirm("Delete this service record?")) {
+        return;
+    }
+
+    const { error } =
+        await client
+        .from("services")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        alert(error.message);
+        return;
+    }
+
+    await loadServices();
+
+}
+
+</script>
+
+</body>
+</html>
