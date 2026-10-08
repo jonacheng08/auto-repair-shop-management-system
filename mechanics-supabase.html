@@ -48,7 +48,7 @@
 
 <br><br>
 
-<button onclick="addMechanic()">
+<button id="saveBtn" onclick="addMechanic()">
     Add Mechanic
 </button>
 
@@ -83,9 +83,11 @@ supabase.createClient(
     supabaseKey
 );
 
-window.onload = function() {
+let editMechanicId = null;
 
-    loadMechanics();
+window.onload = async function() {
+
+    await loadMechanics();
 
 };
 
@@ -124,14 +126,15 @@ async function loadMechanics() {
             table.insertRow(-1);
 
         row.innerHTML =
-            "<td>" + mechanic.id + "</td>" +
-            "<td>" + mechanic.name + "</td>" +
-            "<td>" + mechanic.contact + "</td>" +
-            "<td>" + mechanic.specialization + "</td>" +
-            "<td>" + mechanic.status + "</td>" +
-            "<td>" +
-            "<button onclick='deleteMechanic(" + mechanic.id + ")'>Delete</button>" +
-            "</td>";
+        "<td>" + mechanic.id + "</td>" +
+        "<td>" + mechanic.name + "</td>" +
+        "<td>" + mechanic.contact + "</td>" +
+        "<td>" + mechanic.specialization + "</td>" +
+        "<td>" + mechanic.status + "</td>" +
+        "<td>" +
+        "<button onclick='editMechanic(" + mechanic.id + ")'>Edit</button> " +
+        "<button onclick='deleteMechanic(" + mechanic.id + ")'>Delete</button>" +
+        "</td>";
 
     });
 
@@ -139,24 +142,71 @@ async function loadMechanics() {
 
 async function addMechanic() {
 
-    const { error } =
+    const mechanicData = {
+
+        name:
+            document.getElementById("mechanicName").value,
+
+        contact:
+            document.getElementById("contactNumber").value,
+
+        specialization:
+            document.getElementById("specialization").value,
+
+        status:
+            document.getElementById("status").value
+
+    };
+
+    let result;
+
+    if(editMechanicId !== null){
+
+        result =
+            await client
+            .from("mechanics")
+            .update(mechanicData)
+            .eq("id", editMechanicId);
+
+    }
+    else{
+
+        result =
+            await client
+            .from("mechanics")
+            .insert([mechanicData]);
+
+    }
+
+    if(result.error){
+
+        alert(result.error.message);
+        return;
+
+    }
+
+    document.getElementById("mechanicName").value = "";
+    document.getElementById("contactNumber").value = "";
+    document.getElementById("specialization").value = "";
+    document.getElementById("status").value = "";
+
+    editMechanicId = null;
+
+    document.getElementById("saveBtn").innerText =
+        "Add Mechanic";
+
+    await loadMechanics();
+
+
+}
+async function editMechanic(id){
+
+    const { data, error } =
         await client
         .from("mechanics")
-        .insert([
-            {
-                name:
-                    document.getElementById("mechanicName").value,
-
-                contact:
-                    document.getElementById("contactNumber").value,
-
-                specialization:
-                    document.getElementById("specialization").value,
-
-                status:
-                    document.getElementById("status").value
-            }
-        ]);
+        .select("*")
+        .eq("id", id)
+        .single();
 
     if(error){
 
@@ -165,14 +215,22 @@ async function addMechanic() {
 
     }
 
-    alert("Mechanic Added!");
+    editMechanicId = id;
 
-    document.getElementById("mechanicName").value = "";
-    document.getElementById("contactNumber").value = "";
-    document.getElementById("specialization").value = "";
-    document.getElementById("status").value = "";
+    document.getElementById("mechanicName").value =
+        data.name;
 
-    loadMechanics();
+    document.getElementById("contactNumber").value =
+        data.contact;
+
+    document.getElementById("specialization").value =
+        data.specialization;
+
+    document.getElementById("status").value =
+        data.status;
+
+    document.getElementById("saveBtn").innerText =
+        "Update Mechanic";
 
 }
 
