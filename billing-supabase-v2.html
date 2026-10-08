@@ -271,11 +271,47 @@ async function saveInvoice(){
     const customer =
         document.getElementById("customerName").value;
 
-    const grandTotal =
-        document.getElementById("grandTotal").value;
-
     const paymentMethod =
         document.getElementById("paymentMethod").value;
+
+    const partsTotal =
+        Number(document.getElementById("partsTotal").value);
+
+    const laborFee =
+        Number(document.getElementById("laborFee").value);
+
+    const grandTotal =
+        Number(document.getElementById("grandTotal").value);
+
+    const rows =
+        document.getElementById("partsTable")
+        .getElementsByTagName("tr");
+
+    let partsUsed = 0;
+
+    let partsBreakdown = [];
+
+    for(let i = 1; i < rows.length; i++){
+
+        partsUsed++;
+
+        partsBreakdown.push({
+
+            partName:
+                rows[i].cells[0].innerText,
+
+            quantity:
+                rows[i].cells[1].innerText,
+
+            unitPrice:
+                rows[i].cells[2].innerText,
+
+            total:
+                rows[i].cells[3].innerText
+
+        });
+
+    }
 
     const { error } =
         await client
@@ -283,8 +319,13 @@ async function saveInvoice(){
         .insert([
             {
                 customer: customer,
+                invoice_date: new Date().toLocaleDateString(),
+                parts_used: partsUsed,
+                parts_total: partsTotal,
+                labor_fee: laborFee,
                 grand_total: grandTotal,
-                payment_method: paymentMethod
+                payment_method: paymentMethod,
+                parts_breakdown: JSON.stringify(partsBreakdown)
             }
         ]);
 
@@ -316,7 +357,11 @@ async function loadInvoices(){
     table.innerHTML = `
         <tr>
             <th>ID</th>
+            <th>Date</th>
             <th>Customer</th>
+            <th>Parts Used</th>
+            <th>Parts Total</th>
+            <th>Labor Fee</th>
             <th>Grand Total</th>
             <th>Payment Method</th>
             <th>Action</th>
@@ -330,12 +375,56 @@ async function loadInvoices(){
 
         row.innerHTML =
             "<td>" + invoice.id + "</td>" +
+            "<td>" + (invoice.invoice_date || "") + "</td>" +
             "<td>" + invoice.customer + "</td>" +
+            "<td>" + (invoice.parts_used || 0) + "</td>" +
+            "<td>₱" + (invoice.parts_total || 0) + "</td>" +
+            "<td>₱" + (invoice.labor_fee || 0) + "</td>" +
             "<td>₱" + invoice.grand_total + "</td>" +
             "<td>" + invoice.payment_method + "</td>" +
-            "<td><button onclick='deleteInvoice(" + invoice.id + ")'>Delete</button></td>";
+            "<td>" +
+            "<button onclick='viewParts(" + invoice.id + ")'>View</button> " +
+            "<button onclick='deleteInvoice(" + invoice.id + ")'>Delete</button>" +
+            "</td>";
 
     });
+
+}
+
+    async function viewParts(id){
+
+    const { data, error } =
+        await client
+        .from("invoices")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    if(error){
+        alert(error.message);
+        return;
+    }
+
+    let parts =
+        JSON.parse(data.parts_breakdown || "[]");
+
+    let message =
+        "Customer: " + data.customer +
+        "\nDate: " + data.invoice_date +
+        "\n\nPARTS USED\n\n";
+
+    parts.forEach(part => {
+
+        message +=
+            "Part: " + part.partName +
+            "\nQty: " + part.quantity +
+            "\nUnit Price: " + part.unitPrice +
+            "\nTotal: ₱" + part.total +
+            "\n------------------------\n";
+
+    });
+
+    alert(message);
 
 }
 
