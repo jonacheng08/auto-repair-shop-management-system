@@ -26,6 +26,29 @@
 
 <hr>
 
+<h3>Inventory Summary</h3>
+
+<div class="dashboard-grid">
+
+    <div class="card">
+        <h2>Total Parts</h2>
+        <p id="partCount">0</p>
+    </div>
+
+    <div class="card">
+        <h2>Low Stock Items</h2>
+        <p id="lowStockCount">0</p>
+    </div>
+
+    <div class="card">
+        <h2>Inventory Value</h2>
+        <p id="inventoryValue">₱0</p>
+    </div>
+
+</div>
+
+<hr>
+
 <h3>Add New Part</h3>
 
 <input type="text" id="partName" placeholder="Part Name">
@@ -55,7 +78,7 @@
 <input
     type="text"
     id="searchInput"
-    placeholder="Search Part..."
+    placeholder="Search Part Name, Supplier or Status..."
     onkeyup="searchPart()">
 
 <hr>
@@ -70,6 +93,7 @@
     <th>Quantity</th>
     <th>Unit Price</th>
     <th>Supplier</th>
+    <th>Status</th>
     <th>Actions</th>
 </tr>
 
@@ -122,27 +146,72 @@ async function loadParts(){
             <th>Quantity</th>
             <th>Unit Price</th>
             <th>Supplier</th>
+            <th>Status</th>
             <th>Actions</th>
         </tr>
     `;
+
+    let totalInventoryValue = 0;
+    let lowStockItems = 0;
 
     data.forEach(part => {
 
         let row =
             table.insertRow(-1);
 
+        let quantity =
+            Number(part.quantity);
+
+        let unitPrice =
+            Number(part.unit_price);
+
+        let inventoryValue =
+            quantity * unitPrice;
+
+        totalInventoryValue +=
+            inventoryValue;
+
+        let status =
+            quantity <= 5
+            ? "Low Stock"
+            : "Available";
+
+        if(quantity <= 5){
+
+            lowStockItems++;
+
+            row.style.backgroundColor =
+                "#ffe5e5";
+
+        }
+
         row.innerHTML =
             "<td>" + part.id + "</td>" +
             "<td>" + part.part_name + "</td>" +
-            "<td>" + part.quantity + "</td>" +
-            "<td>" + part.unit_price + "</td>" +
+            "<td>" + quantity + "</td>" +
+            "<td>₱" + unitPrice.toLocaleString() + "</td>" +
             "<td>" + part.supplier + "</td>" +
+            "<td>" + status + "</td>" +
             "<td>" +
-            "<button onclick='editPart(" + part.id + ")'>Edit</button> " +
-            "<button onclick='deletePart(" + part.id + ")'>Delete</button>" +
+            "<button onclick='editPart(" +
+            part.id +
+            ")'>Edit</button> " +
+            "<button onclick='deletePart(" +
+            part.id +
+            ")'>Delete</button>" +
             "</td>";
 
     });
+
+    document.getElementById("partCount").innerText =
+        data.length;
+
+    document.getElementById("lowStockCount").innerText =
+        lowStockItems;
+
+    document.getElementById("inventoryValue").innerText =
+        "₱" +
+        totalInventoryValue.toLocaleString();
 
 }
 
@@ -189,8 +258,7 @@ async function savePart(){
             return;
         }
 
-    }
-    else{
+    } else {
 
         const { error } =
             await client
@@ -280,11 +348,15 @@ function searchPart(){
         .toLowerCase();
 
     let rows =
-        document.querySelectorAll("#inventoryTable tr");
+        document.querySelectorAll(
+            "#inventoryTable tr"
+        );
 
     rows.forEach(function(row,index){
 
-        if(index === 0) return;
+        if(index === 0){
+            return;
+        }
 
         let text =
             row.textContent.toLowerCase();
