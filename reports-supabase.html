@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Reports - Supabase</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<head>
+    <title>Management Reports</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,57 +12,103 @@
 <body>
 
 <nav>
-     <a href="dashboard-supabase.html">Dashboard</a> |
+    <a href="dashboard-supabase.html">Dashboard</a> |
     <a href="customers-supabase.html">Customers</a> |
-<a href="vehicles-supabase.html">Vehicles</a> |
-<a href="mechanics-supabase.html">Mechanics</a> |
-<a href="inventory-supabase.html">Inventory</a> |
-<a href="services-supabase.html">Services</a> |
-<a href="billing-supabase-v2.html">Billing</a> |
-<a href="reports-supabase.html">Reports</a> |
-<a href="index.html">Logout</a>
-
+    <a href="vehicles-supabase.html">Vehicles</a> |
+    <a href="mechanics-supabase.html">Mechanics</a> |
+    <a href="inventory-supabase.html">Inventory</a> |
+    <a href="services-supabase.html">Services</a> |
+    <a href="billing-supabase-v2.html">Billing</a> |
+    <a href="reports-supabase.html">Reports</a> |
+    <a href="index.html">Logout</a>
 </nav>
 
-<h1>🌸 Reports 🌸</h1>
+<h1>Auto Repair Shop Management Report</h1>
 
 <hr>
 
 <p>
-    <strong>Report Date:</strong>
+    <strong>Generated On:</strong>
     <span id="reportDate"></span>
 </p>
+
+<label><strong>Select Report Month</strong></label>
+
+<br><br>
+
+<input type="month" id="reportMonth">
+
+<button onclick="loadReport()">
+    Generate Report
+</button>
+
+<br><br>
+
+<p>
+    <strong>Report Period:</strong>
+    <span id="reportPeriod"></span>
+</p>
+
+<hr>
+
+<h2>Business Overview</h2>
 
 <table border="1">
 
 <tr>
-    <th>Report</th>
-    <th>Value</th>
-</tr>
-
-<tr>
     <td>Total Customers</td>
-    <td id="customerCount">0</td>
+    <td id="customerCount" class="metric">0</td>
 </tr>
 
 <tr>
     <td>Total Vehicles</td>
-    <td id="vehicleCount">0</td>
+    <td id="vehicleCount" class="metric">0</td>
 </tr>
 
 <tr>
     <td>Total Mechanics</td>
-    <td id="mechanicCount">0</td>
+    <td id="mechanicCount" class="metric">0</td>
 </tr>
+
+<tr>
+    <td>Total Revenue</td>
+    <td id="totalRevenue" class="metric">₱0</td>
+</tr>
+
+</table>
+
+<br>
+
+<h2>Inventory Overview</h2>
+
+<table border="1">
 
 <tr>
     <td>Total Inventory Items</td>
-    <td id="inventoryCount">0</td>
+    <td id="inventoryCountReport" class="metric">0</td>
 </tr>
 
 <tr>
-    <td>Total Service Records</td>
-    <td id="serviceCount">0</td>
+    <td>Low Stock Items</td>
+    <td id="lowStockCount" class="metric">0</td>
+</tr>
+
+<tr>
+    <td>Total Inventory Value</td>
+    <td id="inventoryValue" class="metric">₱0</td>
+</tr>
+
+</table>
+
+<br>
+
+<h2>Monthly Operations Report</h2>
+
+<table border="1">
+
+<tr>
+    <td>Services During Selected Month</td>
+    <td id="monthServiceCount" class="metric">0</td>
 </tr>
 
 <tr>
@@ -70,13 +117,91 @@
 </tr>
 
 <tr>
+    <td>In Progress Repairs</td>
+    <td id="inProgressCount">0</td>
+</tr>
+
+<tr>
     <td>Completed Repairs</td>
     <td id="completedCount">0</td>
 </tr>
 
+</table>
+
+<br>
+
+<h2>Monthly Financial Report</h2>
+
+<table border="1">
+
 <tr>
-    <td>Total Revenue</td>
-    <td id="revenueCount">₱0</td>
+    <td>Revenue During Selected Month</td>
+    <td id="monthRevenue" class="metric">₱0</td>
+</tr>
+
+</table>
+
+<br>
+
+<h2>Previous Month Comparison</h2>
+
+<table border="1">
+
+<tr>
+    <td>Previous Month Services</td>
+    <td id="previousMonthServices" class="metric">0</td>
+</tr>
+
+<tr>
+    <td>Previous Month Revenue</td>
+    <td id="previousMonthRevenue" class="metric">₱0</td>
+</tr>
+
+</table>
+
+<br>
+
+<h2>Year-To-Date Report</h2>
+
+<table border="1">
+
+<tr>
+    <td>YTD Services</td>
+    <td id="ytdServices" class="metric">0</td>
+</tr>
+
+<tr>
+    <td>YTD Revenue</td>
+    <td id="ytdRevenue" class="metric">₱0</td>
+</tr>
+
+</table>
+
+<br>
+
+<h2>Inventory Movement History</h2>
+
+<table border="1" id="inventoryHistoryTable">
+
+<tr>
+    <th>Date</th>
+    <th>Part Name</th>
+    <th>Action</th>
+    <th>Quantity</th>
+    <th>Balance</th>
+</tr>
+
+</table>
+
+<br>
+
+<h2>Revenue History</h2>
+
+<table border="1" id="historyTable">
+
+<tr>
+    <th>Month</th>
+    <th>Revenue</th>
 </tr>
 
 </table>
@@ -92,6 +217,7 @@
 const supabaseUrl =
 "https://vopmdpaxxqejttenxcge.supabase.co";
 
+
 const supabaseKey =
 "sb_publishable_VrWfYD5jljm4i1g14UkasA_jo1lB3IM";
 
@@ -101,14 +227,23 @@ supabase.createClient(
     supabaseKey
 );
 
-const today = new Date();
-
 document.getElementById("reportDate").innerText =
-today.toLocaleDateString();
+    new Date().toLocaleDateString();
 
-loadReport();
+document.getElementById("reportMonth").value =
+    new Date().toISOString().substring(0, 7);
 
-async function loadReport(){
+window.onload = function () {
+    loadReport();
+};
+
+async function loadReport() {
+
+    const selectedMonth =
+        document.getElementById("reportMonth").value;
+
+    document.getElementById("reportPeriod").innerText =
+        selectedMonth;
 
     const customers =
         await client.from("customers").select("*");
@@ -129,49 +264,274 @@ async function loadReport(){
         await client.from("invoices").select("*");
 
     document.getElementById("customerCount").innerText =
-        customers.data.length;
+        (customers.data || []).length;
 
     document.getElementById("vehicleCount").innerText =
-        vehicles.data.length;
+        (vehicles.data || []).length;
 
     document.getElementById("mechanicCount").innerText =
-        mechanics.data.length;
+        (mechanics.data || []).length;
 
-    document.getElementById("inventoryCount").innerText =
-        inventory.data.length;
+    document.getElementById("inventoryCountReport").innerText =
+        (inventory.data || []).length;
 
-    document.getElementById("serviceCount").innerText =
-        services.data.length;
+    let lowStockCount = 0;
+    let inventoryValue = 0;
 
-    let pending =
-        services.data.filter(
-            service => service.status === "Pending"
-        );
+    (inventory.data || []).forEach(item => {
 
-    document.getElementById("pendingCount").innerText =
-        pending.length;
+        let quantity =
+            Number(item.quantity || 0);
 
-    let completed =
-        services.data.filter(
-            service => service.status === "Completed"
-        );
+        let unitPrice =
+            Number(item.unit_price || 0);
 
-    document.getElementById("completedCount").innerText =
-        completed.length;
+        inventoryValue += quantity * unitPrice;
 
-    let totalRevenue = 0;
-
-    invoices.data.forEach(function(invoice){
-
-        totalRevenue +=
-            Number(invoice.grand_total);
+        if (quantity <= 5) {
+            lowStockCount++;
+        }
 
     });
 
-    document.getElementById("revenueCount").innerText =
+    document.getElementById("lowStockCount").innerText =
+        lowStockCount;
+
+    document.getElementById("inventoryValue").innerText =
+        "₱" + inventoryValue.toLocaleString();
+
+    let totalRevenue = 0;
+
+    (invoices.data || []).forEach(invoice => {
+
+        totalRevenue +=
+            Number(invoice.grand_total || 0);
+
+    });
+
+    document.getElementById("totalRevenue").innerText =
         "₱" + totalRevenue.toLocaleString();
 
+    let monthlyServices =
+        (services.data || []).filter(service =>
+            service.service_date &&
+            service.service_date.startsWith(selectedMonth)
+        );
+
+    document.getElementById("monthServiceCount").innerText =
+        monthlyServices.length;
+
+    document.getElementById("pendingCount").innerText =
+        monthlyServices.filter(
+            service => service.status === "Pending"
+        ).length;
+
+    document.getElementById("inProgressCount").innerText =
+        monthlyServices.filter(
+            service => service.status === "In Progress"
+        ).length;
+
+    document.getElementById("completedCount").innerText =
+        monthlyServices.filter(
+            service => service.status === "Completed"
+        ).length;
+
+    let monthRevenue = 0;
+
+    (invoices.data || []).forEach(invoice => {
+
+        if (
+            invoice.invoice_date &&
+            invoice.invoice_date.startsWith(selectedMonth)
+        ) {
+
+            monthRevenue +=
+                Number(invoice.grand_total || 0);
+
+        }
+
+    });
+
+    document.getElementById("monthRevenue").innerText =
+        "₱" + monthRevenue.toLocaleString();
+
+    let previousDate =
+        new Date(selectedMonth + "-01");
+
+    previousDate.setMonth(
+        previousDate.getMonth() - 1
+    );
+
+    let previousMonth =
+        previousDate.toISOString().substring(0, 7);
+
+    let previousServices =
+        (services.data || []).filter(service =>
+            service.service_date &&
+            service.service_date.startsWith(previousMonth)
+        );
+
+    document.getElementById("previousMonthServices").innerText =
+        previousServices.length;
+
+    let previousRevenue = 0;
+
+    (invoices.data || []).forEach(invoice => {
+
+        if (
+            invoice.invoice_date &&
+            invoice.invoice_date.startsWith(previousMonth)
+        ) {
+
+            previousRevenue +=
+                Number(invoice.grand_total || 0);
+
+        }
+
+    });
+
+    document.getElementById("previousMonthRevenue").innerText =
+        "₱" + previousRevenue.toLocaleString();
+
+    const currentYear =
+        new Date().getFullYear().toString();
+
+    let ytdServices =
+        (services.data || []).filter(service =>
+            service.service_date &&
+            service.service_date.startsWith(currentYear)
+        );
+
+    document.getElementById("ytdServices").innerText =
+        ytdServices.length;
+
+    let ytdRevenue = 0;
+
+    (invoices.data || []).forEach(invoice => {
+
+        if (
+            invoice.invoice_date &&
+            invoice.invoice_date.startsWith(currentYear)
+        ) {
+
+            ytdRevenue +=
+                Number(invoice.grand_total || 0);
+
+        }
+
+    });
+
+    document.getElementById("ytdRevenue").innerText =
+        "₱" + ytdRevenue.toLocaleString();
+
+    buildRevenueHistory(
+        invoices.data || []
+    );
+
+    await loadInventoryHistory();
+
 }
+
+function buildRevenueHistory(invoices) {
+
+    let historyTable =
+        document.getElementById("historyTable");
+
+    historyTable.innerHTML = `
+        <tr>
+            <th>Month</th>
+            <th>Revenue</th>
+        </tr>
+    `;
+
+    let revenueByMonth = {};
+
+    invoices.forEach(invoice => {
+
+        if (!invoice.invoice_date) return;
+
+        let month =
+            invoice.invoice_date.substring(0, 7);
+
+        let amount =
+            Number(invoice.grand_total || 0);
+
+        if (!revenueByMonth[month]) {
+            revenueByMonth[month] = 0;
+        }
+
+        revenueByMonth[month] += amount;
+
+    });
+
+    Object.keys(revenueByMonth)
+        .sort()
+        .reverse()
+        .forEach(month => {
+
+            let row =
+                historyTable.insertRow(-1);
+
+            row.innerHTML =
+                "<td>" + month + "</td>" +
+                "<td>₱" +
+                revenueByMonth[month].toLocaleString() +
+                "</td>";
+
+        });
+
+}
+
+async function loadInventoryHistory() {
+
+    const { data, error } =
+        await client
+        .from("inventory_history")
+        .select("*")
+        .order("id", { ascending: false });
+
+    console.log("Inventory History:", data);
+    console.log("Inventory Error:", error);
+
+    if (error) {
+
+        alert(error.message);
+        return;
+
+    }
+
+
+    let table =
+        document.getElementById(
+            "inventoryHistoryTable"
+        );
+
+    table.innerHTML = `
+        <tr>
+            <th>Date</th>
+            <th>Part Name</th>
+            <th>Action</th>
+            <th>Quantity</th>
+            <th>Balance</th>
+        </tr>
+    `;
+
+    data.forEach(record => {
+
+        let row =
+            table.insertRow(-1);
+
+        row.innerHTML =
+            "<td>" + (record.transaction_date || "") + "</td>" +
+            "<td>" + (record.part_name || "") + "</td>" +
+            "<td>" + (record.action || "") + "</td>" +
+            "<td>" + (record.quantity || 0) + "</td>" +
+            "<td>" + (record.balance || 0) + "</td>";
+
+    });
+
+}
+
 
 </script>
 
