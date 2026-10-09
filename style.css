@@ -3,6 +3,7 @@ body {
     background: #fff5f9;
     margin: 0;
     padding: 20px;
+    color: #333;
 }
 
 h1 {
@@ -21,11 +22,11 @@ nav {
         #ff80bf,
         #ff66b2
     );
-
     padding: 15px;
     border-radius: 12px;
     text-align: center;
     margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(214, 51, 132, 0.15);
 }
 
 nav a {
@@ -52,6 +53,11 @@ nav a:hover {
     text-align: center;
     box-shadow: 0 4px 12px rgba(214, 51, 132, 0.15);
     border-top: 5px solid #ff66b2;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
 }
 
 .card h2 {
@@ -73,6 +79,7 @@ select {
     border-radius: 10px;
     box-sizing: border-box;
     background: white;
+    font-size: 14px;
 }
 
 input:focus,
@@ -87,17 +94,18 @@ button {
         #ff80bf,
         #ff66b2
     );
-
     color: white;
     border: none;
     padding: 12px 20px;
     border-radius: 10px;
     cursor: pointer;
     font-weight: bold;
+    transition: all 0.2s ease;
 }
 
 button:hover {
     opacity: 0.9;
+    transform: translateY(-2px);
 }
 
 table {
@@ -106,6 +114,7 @@ table {
     background: white;
     border-radius: 12px;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(214, 51, 132, 0.10);
 }
 
 th {
@@ -117,6 +126,10 @@ th {
 td {
     padding: 10px;
     border: 1px solid #f0d6e2;
+}
+
+tr:nth-child(even) {
+    background: #fff7fb;
 }
 
 .invoice {
@@ -132,21 +145,6 @@ hr {
     background: #ffd1e3;
 }
 
-@media (max-width: 900px) {
-
-    .dashboard-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-}
-
-@media (max-width: 600px) {
-
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-
-}
 .hero {
     background: white;
     padding: 25px;
@@ -167,4 +165,100 @@ hr {
 .hero p {
     color: #666;
     font-size: 16px;
+}
+
+/* Report Styling */
+
+.report-header {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(214, 51, 132, 0.15);
+}
+
+.report-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(214, 51, 132, 0.15);
+}
+
+.metric {
+    color: #d63384;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Section spacing */
+
+section {
+    margin-bottom: 25px;
+}
+
+/* Labels */
+
+label {
+    font-weight: bold;
+    color: #b03060;
+}
+
+/* Print Design */
+
+@media print {
+
+    nav,
+    button {
+        display: none;
+    }
+
+    body {
+        background: white;
+        padding: 0;
+    }
+
+    .report-card,
+    .report-header,
+    .invoice {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+
+    table {
+        box-shadow: none;
+    }
+
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    input,
+    select,
+    button {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
 }
