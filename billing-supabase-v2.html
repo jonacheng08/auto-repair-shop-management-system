@@ -13,13 +13,13 @@
 <nav>
     <a href="dashboard-supabase.html">Dashboard</a> |
     <a href="customers-supabase.html">Customers</a> |
-<a href="vehicles-supabase.html">Vehicles</a> |
-<a href="mechanics-supabase.html">Mechanics</a> |
-<a href="inventory-supabase.html">Inventory</a> |
-<a href="services-supabase.html">Services</a> |
-<a href="billing-supabase-v2.html">Billing</a> |
-<a href="reports-supabase.html">Reports</a> |
-<a href="index.html">Logout</a>
+    <a href="vehicles-supabase.html">Vehicles</a> |
+    <a href="mechanics-supabase.html">Mechanics</a> |
+    <a href="inventory-supabase.html">Inventory</a> |
+    <a href="services-supabase.html">Services</a> |
+    <a href="billing-supabase-v2.html">Billing</a> |
+    <a href="reports-supabase.html">Reports</a> |
+    <a href="index.html">Logout</a>
 </nav>
 
 <h1>Billing Management</h1>
@@ -27,14 +27,15 @@
 <hr>
 
 <h3>Customer Information</h3>
-
 <input type="text" id="customerName" placeholder="Customer Name">
 
 <br><br>
 
 <h3>Add Parts</h3>
 
-<input type="text" id="partName" placeholder="Part Name">
+<select id="partName" onchange="loadPartPrice()">
+    <option value="">Select Part</option>
+</select>
 
 <br><br>
 
@@ -42,8 +43,12 @@
 
 <br><br>
 
-<input type="number" id="unitPrice" placeholder="Unit Price">
-
+<input
+    type="number"
+    id="unitPrice"
+    placeholder="Unit Price"
+    readonly
+>
 <br><br>
 
 <button onclick="addPart()">Add Part</button>
@@ -53,15 +58,13 @@
 <h3>Parts Used</h3>
 
 <table border="1" id="partsTable">
-
-<tr>
-    <th>Part Name</th>
-    <th>Quantity</th>
-    <th>Unit Price</th>
-    <th>Total</th>
-    <th>Action</th>
-</tr>
-
+    <tr>
+        <th>Part Name</th>
+        <th>Quantity</th>
+        <th>Unit Price</th>
+        <th>Total</th>
+        <th>Action</th>
+    </tr>
 </table>
 
 <br>
@@ -104,15 +107,17 @@
 <h2>Billing Records</h2>
 
 <table border="1" id="billingTable">
-
-<tr>
-    <th>ID</th>
-    <th>Customer</th>
-    <th>Grand Total</th>
-    <th>Payment Method</th>
-    <th>Action</th>
-</tr>
-
+    <tr>
+        <th>ID</th>
+        <th>Date</th>
+        <th>Customer</th>
+        <th>Parts Used</th>
+        <th>Parts Total</th>
+        <th>Labor Fee</th>
+        <th>Grand Total</th>
+        <th>Payment Method</th>
+        <th>Action</th>
+    </tr>
 </table>
 
 <hr>
@@ -172,9 +177,81 @@ supabase.createClient(
     supabaseKey
 );
 
+let inventoryParts = [];
+
 window.onload = function(){
+
     loadInvoices();
+    loadParts();
+
 };
+
+function loadPartPrice() {
+
+    let selectedPart =
+        document.getElementById("partName").value;
+
+    let part =
+        inventoryParts.find(
+            item =>
+            item.part_name === selectedPart
+        );
+
+    if(part){
+
+        document.getElementById(
+            "unitPrice"
+        ).value =
+            part.unit_price || 0;
+
+    }
+    else{
+
+        document.getElementById(
+            "unitPrice"
+        ).value = "";
+
+    }
+
+}
+
+async function loadParts() {
+
+    const { data, error } =
+        await client
+        .from("inventory")
+        .select("*")
+        .order("part_name");
+
+    if(error){
+
+        alert(error.message);
+        return;
+
+    }
+
+    inventoryParts = data;
+
+    let select =
+        document.getElementById("partName");
+
+    select.innerHTML =
+        '<option value="">Select Part</option>';
+
+    data.forEach(item => {
+
+        select.innerHTML +=
+            '<option value="' +
+            item.part_name +
+            '">' +
+            item.part_name +
+            ' (Stock: ' +
+            item.quantity +
+            ')</option>';
+
+    });
+
+}
 
 function addPart() {
 
@@ -189,8 +266,8 @@ function addPart() {
 
     if(
         partName === "" ||
-        quantity === 0 ||
-        unitPrice === 0
+        quantity <= 0 ||
+        unitPrice <= 0
     ){
         alert("Please complete all part details.");
         return;
@@ -206,21 +283,20 @@ function addPart() {
     row.innerHTML =
         "<td>" + partName + "</td>" +
         "<td>" + quantity + "</td>" +
-        "<td>₱" + unitPrice + "</td>" +
+        "<td>" + unitPrice + "</td>" +
         "<td>" + total + "</td>" +
         "<td><button onclick='deletePart(this)'>Delete</button></td>";
 
     document.getElementById("partName").value = "";
     document.getElementById("quantity").value = "";
     document.getElementById("unitPrice").value = "";
-
 }
 
 function deletePart(button){
     button.closest("tr").remove();
 }
 
-function calculateInvoice() {
+function calculateInvoice(){
 
     let rows =
         document.getElementById("partsTable")
@@ -236,7 +312,7 @@ function calculateInvoice() {
     }
 
     let laborFee =
-        Number(document.getElementById("laborFee").value);
+        Number(document.getElementById("laborFee").value) || 0;
 
     let grandTotal =
         partsTotal + laborFee;
@@ -263,7 +339,6 @@ function calculateInvoice() {
         grandTotal;
 
     saveInvoice();
-
 }
 
 async function saveInvoice(){
@@ -278,39 +353,120 @@ async function saveInvoice(){
         Number(document.getElementById("partsTotal").value);
 
     const laborFee =
-        Number(document.getElementById("laborFee").value);
+        Number(document.getElementById("laborFee").value) || 0;
 
     const grandTotal =
         Number(document.getElementById("grandTotal").value);
+
+    if(customer === ""){
+
+        alert("Please enter customer name.");
+        return;
+
+    }
 
     const rows =
         document.getElementById("partsTable")
         .getElementsByTagName("tr");
 
     let partsUsed = 0;
-
     let partsBreakdown = [];
 
     for(let i = 1; i < rows.length; i++){
 
+        let partName =
+            rows[i].cells[0].innerText;
+
+        let quantityUsed =
+            Number(rows[i].cells[1].innerText);
+
         partsUsed++;
 
         partsBreakdown.push({
-
-            partName:
-                rows[i].cells[0].innerText,
-
-            quantity:
-                rows[i].cells[1].innerText,
-
-            unitPrice:
-                rows[i].cells[2].innerText,
-
-            total:
-                rows[i].cells[3].innerText
-
+            partName: partName,
+            quantity: quantityUsed,
+            unitPrice: rows[i].cells[2].innerText,
+            total: rows[i].cells[3].innerText
         });
 
+        const {
+            data: inventoryPart,
+            error: inventoryError
+        } =
+            await client
+            .from("inventory")
+            .select("*")
+            .eq("part_name", partName)
+            .single();
+
+        if(inventoryError){
+
+            alert("Part not found in inventory: " + partName);
+            return;
+
+        }
+
+        let currentStock =
+            Number(inventoryPart.quantity);
+
+        if(quantityUsed > currentStock){
+
+            alert(
+                "Not enough stock for " +
+                partName +
+                ". Available stock: " +
+                currentStock
+            );
+
+            return;
+
+        }
+
+        let newQuantity =
+            currentStock - quantityUsed;
+
+        const {
+            error: updateError
+        } =
+            await client
+            .from("inventory")
+            .update({
+                quantity: newQuantity
+            })
+            .eq("id", inventoryPart.id);
+
+        if(updateError){
+
+            alert(updateError.message);
+            return;
+
+        }
+const {
+    error: historyError
+} =
+    await client
+    .from("inventory_history")
+    .insert([
+        {
+            part_name: partName,
+            action: "Sold",
+            quantity: quantityUsed,
+            balance: newQuantity,
+            transaction_date:
+                new Date()
+                .toISOString()
+                .split("T")[0]
+        }
+    ]);
+
+if(historyError){
+
+    alert(
+        "History Error: " +
+        historyError.message
+    );
+
+}
     }
 
     const { error } =
@@ -330,12 +486,15 @@ async function saveInvoice(){
         ]);
 
     if(error){
+
         alert(error.message);
         return;
+
     }
 
-    loadInvoices();
+    alert("Invoice saved and inventory updated.");
 
+    loadInvoices();
 }
 
 async function loadInvoices(){
@@ -382,16 +541,13 @@ async function loadInvoices(){
             "<td>₱" + (invoice.labor_fee || 0) + "</td>" +
             "<td>₱" + invoice.grand_total + "</td>" +
             "<td>" + invoice.payment_method + "</td>" +
-            "<td>" +
-            "<button onclick='viewParts(" + invoice.id + ")'>View</button> " +
-            "<button onclick='deleteInvoice(" + invoice.id + ")'>Delete</button>" +
-            "</td>";
+            "<td><button onclick='viewParts(" + invoice.id + ")'>View</button> <button onclick='deleteInvoice(" + invoice.id + ")'>Delete</button></td>";
 
     });
 
 }
 
-    async function viewParts(id){
+async function viewParts(id){
 
     const { data, error } =
         await client
@@ -420,7 +576,7 @@ async function loadInvoices(){
             "\nQty: " + part.quantity +
             "\nUnit Price: " + part.unitPrice +
             "\nTotal: ₱" + part.total +
-            "\n------------------------\n";
+            "\n----------------------\n";
 
     });
 
@@ -442,7 +598,6 @@ async function deleteInvoice(id){
     }
 
     loadInvoices();
-
 }
 
 </script>
