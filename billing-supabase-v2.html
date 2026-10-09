@@ -31,6 +31,14 @@
 
 <br><br>
 
+<label>Invoice Date</label>
+
+<br><br>
+
+<input type="date" id="invoiceDate">
+
+<br><br>
+
 <h3>Add Parts</h3>
 
 <select id="partName" onchange="loadPartPrice()">
@@ -180,6 +188,11 @@ supabase.createClient(
 let inventoryParts = [];
 
 window.onload = function(){
+
+    document.getElementById("invoiceDate").value =
+        new Date()
+        .toISOString()
+        .split("T")[0];
 
     loadInvoices();
     loadParts();
@@ -346,6 +359,9 @@ async function saveInvoice(){
     const customer =
         document.getElementById("customerName").value;
 
+    const invoiceDate =
+    document.getElementById("invoiceDate").value;
+
     const paymentMethod =
         document.getElementById("paymentMethod").value;
 
@@ -358,12 +374,18 @@ async function saveInvoice(){
     const grandTotal =
         Number(document.getElementById("grandTotal").value);
 
-    if(customer === ""){
+    if(
+customer === "" ||
+invoiceDate === ""
+){
 
-        alert("Please enter customer name.");
-        return;
+alert(
+"Please complete Customer and Invoice Date."
+);
 
-    }
+return;
+
+}
 
     const rows =
         document.getElementById("partsTable")
