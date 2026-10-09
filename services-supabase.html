@@ -34,6 +34,10 @@
 
 <br><br>
 
+<input type="date" id="serviceDate">
+
+<br><br>
+
 <input type="text" id="mechanic" placeholder="Mechanic">
 
 <br><br>
@@ -66,7 +70,7 @@
 <input
     type="text"
     id="searchInput"
-    placeholder="Search Plate Number, Vehicle, Mechanic, Problem or Status"
+    placeholder="Search Date, Plate Number, Vehicle, Mechanic, Problem or Status"
     onkeyup="searchService()">
 
 <br><br>
@@ -78,6 +82,7 @@
 <tr>
     <th>ID</th>
     <th>Plate Number</th>
+    <th>Service Date</th>
     <th>Vehicle</th>
     <th>Mechanic</th>
     <th>Problem</th>
@@ -104,13 +109,13 @@ supabase.createClient(
 
 let editServiceId = null;
 
-window.onload = async function () {
+window.onload = async function(){
 
     await loadServices();
 
 };
 
-async function loadServices() {
+async function loadServices(){
 
     const { data, error } =
         await client
@@ -118,7 +123,7 @@ async function loadServices() {
         .select("*")
         .order("id");
 
-    if (error) {
+    if(error){
         alert(error.message);
         return;
     }
@@ -130,6 +135,7 @@ async function loadServices() {
         <tr>
             <th>ID</th>
             <th>Plate Number</th>
+            <th>Service Date</th>
             <th>Vehicle</th>
             <th>Mechanic</th>
             <th>Problem</th>
@@ -147,6 +153,7 @@ async function loadServices() {
         row.innerHTML =
             "<td>" + service.id + "</td>" +
             "<td>" + (service.plate_number || "") + "</td>" +
+            "<td>" + (service.service_date || "") + "</td>" +
             "<td>" + service.vehicle + "</td>" +
             "<td>" + service.mechanic + "</td>" +
             "<td>" + service.problem + "</td>" +
@@ -161,13 +168,16 @@ async function loadServices() {
 
 }
 
-async function saveService() {
+async function saveService(){
 
     let vehicle =
         document.getElementById("vehicle").value;
 
     let plateNumber =
         document.getElementById("plateNumber").value;
+
+    let serviceDate =
+        document.getElementById("serviceDate").value;
 
     let mechanic =
         document.getElementById("mechanic").value;
@@ -181,19 +191,20 @@ async function saveService() {
     let laborFee =
         document.getElementById("laborFee").value;
 
-    if (
+    if(
         vehicle === "" ||
         plateNumber === "" ||
+        serviceDate === "" ||
         mechanic === "" ||
         problem === "" ||
         status === "" ||
         laborFee === ""
-    ) {
+    ){
         alert("Please complete all fields.");
         return;
     }
 
-    if (editServiceId === null) {
+    if(editServiceId === null){
 
         const { error } =
             await client
@@ -201,6 +212,7 @@ async function saveService() {
             .insert([
                 {
                     plate_number: plateNumber,
+                    service_date: serviceDate,
                     vehicle: vehicle,
                     mechanic: mechanic,
                     problem: problem,
@@ -209,7 +221,7 @@ async function saveService() {
                 }
             ]);
 
-        if (error) {
+        if(error){
             alert(error.message);
             return;
         }
@@ -221,6 +233,7 @@ async function saveService() {
             .from("services")
             .update({
                 plate_number: plateNumber,
+                service_date: serviceDate,
                 vehicle: vehicle,
                 mechanic: mechanic,
                 problem: problem,
@@ -229,7 +242,7 @@ async function saveService() {
             })
             .eq("id", editServiceId);
 
-        if (error) {
+        if(error){
             alert(error.message);
             return;
         }
@@ -240,6 +253,7 @@ async function saveService() {
 
     document.getElementById("vehicle").value = "";
     document.getElementById("plateNumber").value = "";
+    document.getElementById("serviceDate").value = "";
     document.getElementById("mechanic").value = "";
     document.getElementById("problem").value = "";
     document.getElementById("status").value = "";
@@ -249,7 +263,7 @@ async function saveService() {
 
 }
 
-async function editService(id) {
+async function editService(id){
 
     const { data, error } =
         await client
@@ -258,7 +272,7 @@ async function editService(id) {
         .eq("id", id)
         .single();
 
-    if (error) {
+    if(error){
         alert(error.message);
         return;
     }
@@ -268,6 +282,9 @@ async function editService(id) {
 
     document.getElementById("plateNumber").value =
         data.plate_number;
+
+    document.getElementById("serviceDate").value =
+        data.service_date;
 
     document.getElementById("mechanic").value =
         data.mechanic;
@@ -285,7 +302,7 @@ async function editService(id) {
 
 }
 
-function searchService() {
+function searchService(){
 
     let input =
         document.getElementById("searchInput")
@@ -297,32 +314,29 @@ function searchService() {
             "#serviceTable tr"
         );
 
-    rows.forEach(function(row, index) {
+    rows.forEach(function(row,index){
 
-        if (index === 0) {
+        if(index === 0){
             return;
         }
 
         let text =
             row.textContent.toLowerCase();
 
-        if (text.includes(input)) {
-
+        if(text.includes(input)){
             row.style.display = "";
-
-        } else {
-
+        }
+        else{
             row.style.display = "none";
-
         }
 
     });
 
 }
 
-async function deleteService(id) {
+async function deleteService(id){
 
-    if (!confirm("Delete this service record?")) {
+    if(!confirm("Delete this service record?")){
         return;
     }
 
@@ -332,7 +346,7 @@ async function deleteService(id) {
         .delete()
         .eq("id", id);
 
-    if (error) {
+    if(error){
         alert(error.message);
         return;
     }
