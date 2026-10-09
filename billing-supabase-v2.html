@@ -497,7 +497,8 @@ if(historyError){
         .insert([
             {
                 customer: customer,
-                invoice_date: new Date().toLocaleDateString(),
+                invoice_date:
+                    invoiceDate,
                 parts_used: partsUsed,
                 parts_total: partsTotal,
                 labor_fee: laborFee,
