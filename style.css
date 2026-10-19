@@ -262,3 +262,46 @@ label {
     }
 
 }
+
+/* Mobile */
+
+@media (max-width: 600px) {
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    input,
+    select,
+    button {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
+}
+
+/* Invoice Print Only */
+
+@media print {
+
+    body * {
+        display: none !important;
+    }
+
+    #invoiceArea,
+    #invoiceArea * {
+        display: block !important;
+    }
+
+    #invoiceArea {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+    }
+
+}
