@@ -185,21 +185,19 @@ async function loadParts(){
 
         }
 
-        row.innerHTML =
-            "<td>" + part.id + "</td>" +
-            "<td>" + part.part_name + "</td>" +
-            "<td>" + quantity + "</td>" +
-            "<td>₱" + unitPrice.toLocaleString() + "</td>" +
-            "<td>" + part.supplier + "</td>" +
-            "<td>" + status + "</td>" +
-            "<td>" +
-            "<button onclick='editPart(" +
-            part.id +
-            ")'>Edit</button> " +
-            "<button onclick='deletePart(" +
-            part.id +
-            ")'>Delete</button>" +
-            "</td>";
+       row.innerHTML =
+    "<td>" + part.id + "</td>" +
+    "<td>" + part.part_name + "</td>" +
+    "<td>" + quantity + "</td>" +
+    "<td>₱" + unitPrice.toLocaleString() + "</td>" +
+    "<td>" + part.supplier + "</td>" +
+    "<td>" + status + "</td>" +
+    "<td>" +
+    "<button onclick='editPart(" + part.id + ")'>Edit</button> " +
+    "<button onclick='deletePart(" + part.id + ")'>Delete</button> " +
+    "<button onclick='viewHistory(\"" + part.part_name + "\")'>View History</button>" +
+    "</td>";
+
 
     });
 
@@ -253,6 +251,34 @@ async function savePart(){
                 }
             ]);
 
+            const {
+    error: historyError
+} =
+    await client
+    .from("inventory_history")
+    .insert([
+        {
+            part_name: partName,
+            action: "Stock In",
+            quantity: Number(quantity),
+            balance: Number(quantity),
+            transaction_date:
+                new Date()
+                .toISOString()
+                .split("T")[0]
+        }
+    ]);
+
+if(historyError){
+
+    alert(
+        "Inventory History Error: " +
+        historyError.message
+    );
+
+}
+
+
         if(error){
             alert(error.message);
             return;
@@ -260,25 +286,78 @@ async function savePart(){
 
     } else {
 
-        const { error } =
-            await client
-            .from("inventory")
-            .update({
-                part_name: partName,
-                quantity: quantity,
-                unit_price: unitPrice,
-                supplier: supplier
-            })
-            .eq("id", editPartId);
+    const { data: oldPart, error: oldError } =
+        await client
+        .from("inventory")
+        .select("*")
+        .eq("id", editPartId)
+        .single();
 
-        if(error){
-            alert(error.message);
-            return;
+    if(oldError){
+        alert(oldError.message);
+        return;
+    }
+
+    let oldQuantity =
+        Number(oldPart.quantity);
+
+    let newQuantity =
+        Number(quantity);
+
+    const { error } =
+        await client
+        .from("inventory")
+        .update({
+            part_name: partName,
+            quantity: newQuantity,
+            unit_price: unitPrice,
+            supplier: supplier
+        })
+        .eq("id", editPartId);
+
+    if(error){
+        alert(error.message);
+        return;
+    }
+
+    if(newQuantity > oldQuantity){
+
+        let restockQuantity =
+            newQuantity - oldQuantity;
+
+        const {
+            error: historyError
+        } =
+            await client
+            .from("inventory_history")
+            .insert([
+                {
+                    part_name: partName,
+                    action: "Restock",
+                    quantity: restockQuantity,
+                    balance: newQuantity,
+                    transaction_date:
+                        new Date()
+                        .toISOString()
+                        .split("T")[0]
+                }
+            ]);
+
+        if(historyError){
+
+            alert(
+                "History Error: " +
+                historyError.message
+            );
+
         }
 
-        editPartId = null;
-
     }
+
+    editPartId = null;
+
+}
+
 
     document.getElementById("partName").value = "";
     document.getElementById("quantity").value = "";
@@ -337,6 +416,59 @@ async function deletePart(id){
     }
 
     loadParts();
+
+}
+
+async function viewHistory(partName){
+
+    const { data, error } =
+        await client
+        .from("inventory_history")
+        .select("*")
+        .eq("part_name", partName)
+        .order("id", {
+            ascending: false
+        });
+
+    if(error){
+        alert(error.message);
+        return;
+    }
+
+    let message =
+        "INVENTORY HISTORY\n\n" +
+        "Part: " + partName +
+        "\n\n";
+
+    if(data.length === 0){
+
+        message +=
+            "No history recorded.";
+
+    } else {
+
+        data.forEach(record => {
+
+            message +=
+                "Date: " +
+                (record.transaction_date || "") +
+
+                "\nAction: " +
+                (record.action || "") +
+
+                "\nQuantity: " +
+                (record.quantity || 0) +
+
+                "\nBalance: " +
+                (record.balance || 0) +
+
+                "\n----------------------\n";
+
+        });
+
+    }
+
+    alert(message);
 
 }
 
