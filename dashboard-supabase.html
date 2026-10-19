@@ -76,6 +76,11 @@
     </div>
 
     <div class="card">
+    <h2>Progress Repairs</h2>
+    <p id="progressCount">0</p>
+    </div>
+
+    <div class="card">
         <h2>Completed Repairs</h2>
         <p id="completedCount">0</p>
     </div>
@@ -96,72 +101,119 @@ supabase.createClient(
     supabaseKey
 );
 
-loadDashboard();
+window.onload = function () {
+    loadDashboard();
+};
 
 async function loadDashboard() {
 
-    const customers =
-        await client.from("customers").select("*");
+    try {
 
-    const vehicles =
-        await client.from("vehicles").select("*");
+        const customers =
+            await client.from("customers").select("*");
 
-    const mechanics =
-        await client.from("mechanics").select("*");
+        const vehicles =
+            await client.from("vehicles").select("*");
 
-    const inventory =
-        await client.from("inventory").select("*");
+        const mechanics =
+            await client.from("mechanics").select("*");
 
-    const services =
-        await client.from("services").select("*");
+        const inventory =
+            await client.from("inventory").select("*");
 
-    const invoices =
-        await client.from("invoices").select("*");
+        const services =
+            await client.from("services").select("*");
 
-    document.getElementById("customerCount").innerText =
-        customers.data.length;
+        const invoices =
+            await client.from("invoices").select("*");
 
-    document.getElementById("vehicleCount").innerText =
-        vehicles.data.length;
+        document.getElementById("customerCount").innerText =
+            customers.data ? customers.data.length : 0;
 
-    document.getElementById("mechanicCount").innerText =
-        mechanics.data.length;
+        document.getElementById("vehicleCount").innerText =
+            vehicles.data ? vehicles.data.length : 0;
 
-    document.getElementById("inventoryCount").innerText =
-        inventory.data.length;
+        document.getElementById("mechanicCount").innerText =
+            mechanics.data ? mechanics.data.length : 0;
 
-    document.getElementById("serviceCount").innerText =
-        services.data.length;
+        document.getElementById("inventoryCount").innerText =
+            inventory.data ? inventory.data.length : 0;
 
-    let pending =
-        services.data.filter(
-            service => service.status === "Pending"
+        document.getElementById("serviceCount").innerText =
+            services.data ? services.data.length : 0;
+
+        let pendingCount = 0;
+        let progressCount = 0;
+        let completedCount = 0;
+
+        if (services.data) {
+
+            services.data.forEach(service => {
+
+                let status =
+                    (service.status || "")
+                    .toLowerCase()
+                    .trim();
+
+                if (status === "pending") {
+                    pendingCount++;
+                }
+
+         if (
+                status === "progress" ||
+                status === "in progress" ||
+                status === "ongoing"
+            ) {
+                progressCount++;
+            }
+                            if (status === "completed") {
+                    completedCount++;
+                }
+
+            });
+
+        }
+
+        document.getElementById("pendingCount").innerText =
+            pendingCount;
+
+        document.getElementById("progressCount").innerText =
+            progressCount;
+
+        document.getElementById("completedCount").innerText =
+            completedCount;
+
+        let totalRevenue = 0;
+
+        if (invoices.data) {
+
+            invoices.data.forEach(invoice => {
+
+                totalRevenue +=
+                    Number(invoice.grand_total || 0);
+
+            });
+
+        }
+
+        document.getElementById("revenueCount").innerText =
+            "₱" + totalRevenue.toLocaleString();
+
+    }
+    catch(error) {
+
+        console.log(error);
+
+        alert(
+            "Dashboard Error: " +
+            error.message
         );
 
-    document.getElementById("pendingCount").innerText =
-        pending.length;
-
-    let completed =
-        services.data.filter(
-            service => service.status === "Completed"
-        );
-
-    document.getElementById("completedCount").innerText =
-        completed.length;
-
-    let totalRevenue = 0;
-
-    invoices.data.forEach(function(invoice){
-
-        totalRevenue +=
-            Number(invoice.grand_total);
-
-    });
-
-    document.getElementById("revenueCount").innerText =
-        "₱" + totalRevenue.toLocaleString();
+    }
 
 }
+
+
 
 </script>
 
