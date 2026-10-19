@@ -421,14 +421,14 @@ async function deletePart(id){
 
 async function viewHistory(partName){
 
-    const { data, error } =
-        await client
-        .from("inventory_history")
-        .select("*")
-        .eq("part_name", partName)
-        .order("id", {
-            ascending: false
-        });
+const { data, error } =
+    await client
+    .from("inventory_history")
+    .select("*")
+    .ilike("part_name", "%" + partName + "%")
+    .order("id", {
+        ascending: false
+    });
 
     if(error){
         alert(error.message);
@@ -436,40 +436,22 @@ async function viewHistory(partName){
     }
 
     let message =
-        "INVENTORY HISTORY\n\n" +
         "Part: " + partName +
+        "\n\nRecords Found: " +
+        data.length +
         "\n\n";
 
-    if(data.length === 0){
+    data.forEach(record => {
 
         message +=
-            "No history recorded.";
-
-    } else {
-
-        data.forEach(record => {
-
-            message +=
-                "Date: " +
-                (record.transaction_date || "") +
-
-                "\nAction: " +
-                (record.action || "") +
-
-                "\nQuantity: " +
-                (record.quantity || 0) +
-
-                "\nBalance: " +
-                (record.balance || 0) +
-
-                "\n----------------------\n";
-
-        });
-
-    }
+            "Date: " + record.transaction_date +
+            "\nAction: " + record.action +
+            "\nQuantity: " + record.quantity +
+            "\nBalance: " + record.balance +
+            "\n--------------------\n";
+    });
 
     alert(message);
-
 }
 
 function searchPart(){
