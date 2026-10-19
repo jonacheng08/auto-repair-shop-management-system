@@ -99,7 +99,11 @@
 <br><br>
 
 <button onclick="calculateInvoice()">
-    Calculate Invoice
+    Preview Invoice
+</button>
+
+<button onclick="saveInvoice()">
+    Save Invoice
 </button>
 
 <br><br>
@@ -112,27 +116,9 @@
 
 <hr>
 
-<h2>Billing Records</h2>
-
-<table border="1" id="billingTable">
-    <tr>
-        <th>ID</th>
-        <th>Date</th>
-        <th>Customer</th>
-        <th>Parts Used</th>
-        <th>Parts Total</th>
-        <th>Labor Fee</th>
-        <th>Grand Total</th>
-        <th>Payment Method</th>
-        <th>Action</th>
-    </tr>
-</table>
-
-<hr>
-
 <h2>Invoice Preview</h2>
 
-<div class="invoice">
+<div class="invoice" id="invoiceArea">
 
     <h2>Auto Repair Shop</h2>
 
@@ -170,6 +156,25 @@
     </button>
 
 </div>
+
+
+<h2>Billing Records</h2>
+
+<table border="1" id="billingTable">
+    <tr>
+        <th>ID</th>
+        <th>Date</th>
+        <th>Customer</th>
+        <th>Parts Used</th>
+        <th>Parts Total</th>
+        <th>Labor Fee</th>
+        <th>Grand Total</th>
+        <th>Payment Method</th>
+        <th>Action</th>
+    </tr>
+</table>
+
+<hr>
 
 <script>
 
@@ -294,11 +299,14 @@ function addPart() {
         .insertRow(-1);
 
     row.innerHTML =
-        "<td>" + partName + "</td>" +
-        "<td>" + quantity + "</td>" +
-        "<td>" + unitPrice + "</td>" +
-        "<td>" + total + "</td>" +
-        "<td><button onclick='deletePart(this)'>Delete</button></td>";
+    "<td>" + partName + "</td>" +
+    "<td>" + quantity + "</td>" +
+    "<td>" + unitPrice + "</td>" +
+    "<td>" + total + "</td>" +
+    "<td>" +
+    "<button onclick='editPartRow(this)'>Edit</button> " +
+    "<button onclick='deletePart(this)'>Delete</button>" +
+    "</td>";
 
     document.getElementById("partName").value = "";
     document.getElementById("quantity").value = "";
@@ -307,6 +315,24 @@ function addPart() {
 
 function deletePart(button){
     button.closest("tr").remove();
+}
+
+function editPartRow(button){
+
+let row =
+button.closest("tr");
+
+document.getElementById("partName").value =
+row.cells[0].innerText;
+
+document.getElementById("quantity").value =
+row.cells[1].innerText;
+
+document.getElementById("unitPrice").value =
+row.cells[2].innerText;
+
+row.remove();
+
 }
 
 function calculateInvoice(){
@@ -351,7 +377,6 @@ function calculateInvoice(){
     document.getElementById("previewGrandTotal").innerText =
         grandTotal;
 
-    saveInvoice();
 }
 
 async function saveInvoice(){
@@ -418,7 +443,7 @@ return;
             await client
             .from("inventory")
             .select("*")
-            .eq("part_name", partName)
+            .ilike("part_name", partName)
             .single();
 
         if(inventoryError){
@@ -475,9 +500,7 @@ const {
             quantity: quantityUsed,
             balance: newQuantity,
             transaction_date:
-                new Date()
-                .toISOString()
-                .split("T")[0]
+            invoiceDate
         }
     ]);
 
@@ -516,6 +539,41 @@ if(historyError){
     }
 
     alert("Invoice saved and inventory updated.");
+
+    document.getElementById("customerName").value = "";
+
+document.getElementById("invoiceDate").value =
+    new Date().toISOString().split("T")[0];
+
+document.getElementById("paymentMethod").value = "";
+
+document.getElementById("laborFee").value = "";
+
+document.getElementById("partsTotal").value = "";
+
+document.getElementById("grandTotal").value = "";
+
+document.getElementById("partName").value = "";
+
+document.getElementById("quantity").value = "";
+
+document.getElementById("unitPrice").value = "";
+
+document.getElementById("partsTable").innerHTML = `
+<tr>
+    <th>Part Name</th>
+    <th>Quantity</th>
+    <th>Unit Price</th>
+    <th>Total</th>
+    <th>Action</th>
+</tr>
+`;
+
+document.getElementById("previewCustomer").innerText = "N/A";
+document.getElementById("previewPaymentMethod").innerText = "N/A";
+document.getElementById("previewPartsTotal").innerText = "0";
+document.getElementById("previewLaborFee").innerText = "0";
+document.getElementById("previewGrandTotal").innerText = "0";
 
     loadInvoices();
 }
@@ -609,6 +667,64 @@ async function viewParts(id){
 
 async function deleteInvoice(id){
 
+    if(!confirm("Delete this invoice?")){
+        return;
+    }
+
+    const { data: invoice, error: invoiceError } =
+        await client
+        .from("invoices")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    if(invoiceError){
+        alert(invoiceError.message);
+        return;
+    }
+
+    const parts =
+        JSON.parse(invoice.parts_breakdown || "[]");
+
+    for(const part of parts){
+
+        const { data: inventoryPart } =
+            await client
+            .from("inventory")
+            .select("*")
+            .eq("part_name", part.partName)
+            .single();
+
+        if(inventoryPart){
+
+            let restoredQty =
+                Number(inventoryPart.quantity) +
+                Number(part.quantity);
+
+            await client
+                .from("inventory")
+                .update({
+                    quantity: restoredQty
+                })
+                .eq("id", inventoryPart.id);
+
+            await client
+                .from("inventory_history")
+                .insert([
+                {
+                    part_name: part.partName,
+                    action: "Invoice Deleted",
+                    quantity: part.quantity,
+                    balance: restoredQty,
+                    transaction_date:
+                        new Date()
+                        .toISOString()
+                        .split("T")[0]
+                }
+            ]);
+        }
+    }
+
     const { error } =
         await client
         .from("invoices")
@@ -620,7 +736,10 @@ async function deleteInvoice(id){
         return;
     }
 
+    alert("Invoice deleted and stock restored.");
+
     loadInvoices();
+    loadParts();
 }
 
 </script>
