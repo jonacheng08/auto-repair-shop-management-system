@@ -284,20 +284,20 @@ label {
 
 }
 
-/* Invoice Print Only */
+/* Invoice Print Only — apply only when an invoice area exists */
 
 @media print {
 
-    body * {
+    body:has(#invoiceArea) * {
         display: none !important;
     }
 
-    #invoiceArea,
-    #invoiceArea * {
+    body:has(#invoiceArea) #invoiceArea,
+    body:has(#invoiceArea) #invoiceArea * {
         display: block !important;
     }
 
-    #invoiceArea {
+    body:has(#invoiceArea) #invoiceArea {
         position: absolute;
         top: 0;
         left: 0;
