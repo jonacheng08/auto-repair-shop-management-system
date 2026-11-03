@@ -435,6 +435,9 @@ function buildRevenueHistory(invoices) {
     let historyTable =
         document.getElementById("historyTable");
 
+    // The history table is optional. Do not throw if it is absent.
+    if (!historyTable) return;
+
     historyTable.innerHTML = `
         <tr>
             <th>Month</th>
